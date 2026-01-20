@@ -7,7 +7,7 @@ description = "🤖 null-e: The friendly disk cleanup robot - Send your cruft to
 license = "MIT"
 repository = "https://github.com/us/null-e"
 homepage = "https://github.com/us/null-e"
-keywords = ["cleanup", "disk-space", "developer-tools", "node-modules", "cache", "devnull"]
+keywords = ["cleanup", "disk-space", "developer-tools", "cache", "cli"]
 categories = ["command-line-utilities", "development-tools", "filesystem"]
 readme = "README.md"
 
