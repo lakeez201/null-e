@@ -5,7 +5,7 @@
 //! - Unreal Engine (Intermediate, Saved, DerivedDataCache)
 //! - Godot (cache, .import)
 
-use super::{calculate_dir_size, get_mtime, CleanableItem, SafetyLevel};
+use super::{calculate_dir_size, CleanableItem, SafetyLevel};
 use crate::error::Result;
 use std::path::PathBuf;
 

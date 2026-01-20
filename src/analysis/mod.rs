@@ -9,7 +9,6 @@ pub mod git;
 pub mod stale;
 pub mod duplicates;
 
-use crate::error::Result;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 

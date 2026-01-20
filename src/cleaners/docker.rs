@@ -74,7 +74,7 @@ impl DockerCleaner {
             let parts: Vec<&str> = line.split('\t').collect();
             if parts.len() >= 3 {
                 let type_name = parts[0];
-                let total_size = parse_docker_size(parts[1]);
+                let _total_size = parse_docker_size(parts[1]);
                 let reclaimable = parse_docker_size(parts[2].trim_end_matches(|c| c == ')' || c == '%' || c == '(').split('(').next().unwrap_or("0"));
 
                 if reclaimable > 0 {

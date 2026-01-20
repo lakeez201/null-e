@@ -12,6 +12,7 @@ use std::process::Command;
 
 /// Homebrew cleaner
 pub struct HomebrewCleaner {
+    #[allow(dead_code)]
     home: PathBuf,
     cache_path: PathBuf,
 }

@@ -87,6 +87,10 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Interactive TUI mode - browse and clean with a beautiful interface
+    #[command(alias = "ui", alias = "interactive")]
+    Tui,
+
     /// Scan directories for cleanable artifacts
     Scan {
         /// Show detailed artifact information
@@ -308,6 +312,7 @@ fn main() {
 
     // Run the appropriate command
     let result = match &cli.command {
+        Some(Commands::Tui) => cmd_tui(&cli),
         Some(Commands::Scan { detailed }) => cmd_scan(&cli, *detailed),
         Some(Commands::Clean { only, exclude }) => cmd_clean(&cli, only, exclude),
         Some(Commands::Config { init, path }) => cmd_config(*init, *path),
@@ -345,6 +350,20 @@ fn main() {
         std::process::exit(e.exit_code());
     }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TUI Command
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn cmd_tui(cli: &Cli) -> Result<()> {
+    let paths = get_scan_paths(cli)?;
+    null_e::tui::run(paths)?;
+    Ok(())
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Scan Command
+// ═══════════════════════════════════════════════════════════════════════════
 
 fn cmd_scan(cli: &Cli, detailed: bool) -> Result<()> {
     let paths = get_scan_paths(cli)?;
@@ -618,7 +637,7 @@ fn display_scan_results(
     Ok(())
 }
 
-fn cmd_clean(cli: &Cli, only: &[String], exclude: &[String]) -> Result<()> {
+fn cmd_clean(cli: &Cli, _only: &[String], _exclude: &[String]) -> Result<()> {
     let paths = get_scan_paths(cli)?;
 
     println!(
@@ -850,7 +869,7 @@ fn cmd_list() -> Result<()> {
 }
 
 fn cmd_caches(cli: &Cli, clean: bool, clean_all: bool, use_official: bool) -> Result<()> {
-    use null_e::caches::{detect_caches, calculate_all_sizes, clean_cache, CachesSummary};
+    use null_e::caches::{detect_caches, calculate_all_sizes, CachesSummary};
 
     println!(
         "{} {}",

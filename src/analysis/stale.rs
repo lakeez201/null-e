@@ -9,7 +9,7 @@ use crate::error::Result;
 use rayon::prelude::*;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::time::{Duration, SystemTime};
+use std::time::SystemTime;
 use walkdir::WalkDir;
 
 /// Stale project detector
@@ -188,7 +188,7 @@ impl StaleProjectFinder {
         let project_type = self.detect_project_type(project_path);
 
         // Get last activity (from git or file system)
-        let (days_stale, last_activity) = self.get_last_activity(project_path);
+        let (days_stale, _last_activity) = self.get_last_activity(project_path);
 
         // Skip if not stale enough
         if days_stale < self.stale_threshold_days {

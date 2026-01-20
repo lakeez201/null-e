@@ -8,7 +8,6 @@
 use super::{Recommendation, RecommendationKind, RiskLevel};
 use crate::cleaners::calculate_dir_size;
 use crate::error::Result;
-use rayon::prelude::*;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};

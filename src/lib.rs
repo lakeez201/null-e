@@ -61,7 +61,8 @@
 //!                └─────────────────┘
 //! ```
 
-#![warn(missing_docs)]
+// Documentation warnings - relaxed for CLI tool
+#![allow(missing_docs)]
 #![warn(rustdoc::missing_crate_level_docs)]
 
 pub mod analysis;

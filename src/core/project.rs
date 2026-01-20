@@ -201,6 +201,54 @@ impl ProjectKind {
             Self::Custom(_) => "📁",
         }
     }
+
+    /// Check if this is a Node.js/JavaScript project
+    pub fn is_node(&self) -> bool {
+        matches!(
+            self,
+            Self::NodeNpm | Self::NodeYarn | Self::NodePnpm | Self::NodeBun | Self::Deno
+        )
+    }
+
+    /// Check if this is a Rust project
+    pub fn is_rust(&self) -> bool {
+        matches!(self, Self::Rust)
+    }
+
+    /// Check if this is a Python project
+    pub fn is_python(&self) -> bool {
+        matches!(
+            self,
+            Self::PythonPip
+                | Self::PythonPoetry
+                | Self::PythonPipenv
+                | Self::PythonConda
+                | Self::PythonUv
+        )
+    }
+
+    /// Check if this is a Java/JVM project
+    pub fn is_java(&self) -> bool {
+        matches!(
+            self,
+            Self::JavaMaven | Self::JavaGradle | Self::Kotlin | Self::Scala | Self::Clojure
+        )
+    }
+
+    /// Check if this is a Go project
+    pub fn is_go(&self) -> bool {
+        matches!(self, Self::Go)
+    }
+
+    /// Check if this is a Swift/iOS project
+    pub fn is_swift(&self) -> bool {
+        matches!(self, Self::SwiftSpm | Self::SwiftXcode)
+    }
+
+    /// Check if this is a .NET project
+    pub fn is_dotnet(&self) -> bool {
+        matches!(self, Self::DotNet | Self::FSharp)
+    }
 }
 
 /// Marker files/directories that identify a project type

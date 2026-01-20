@@ -137,7 +137,7 @@ impl GitAnalyzer {
         // Get last commit info
         let last_commit = self.get_last_commit_date(repo_path);
 
-        let info = GitRepoInfo {
+        let _info = GitRepoInfo {
             path: repo_path.to_path_buf(),
             git_size,
             loose_objects: loose_count,
