@@ -1,0 +1,34 @@
+name: null-e
+base: core22
+version: '0.1.0'
+summary: The friendly disk cleanup robot
+description: |
+  null-e helps developers reclaim disk space by finding and cleaning
+  development artifacts, caches, and unused files. Like Wall-E but for
+  your disk - it sends cruft to /dev/null!
+
+  Features:
+  - Multi-language support (Node.js, Rust, Python, Go, Java, etc.)
+  - Git protection - never delete uncommitted changes
+  - Safe deletion - moves to trash by default
+  - Parallel scanning for speed
+  - Analysis tools for stale projects and duplicates
+
+grade: stable
+confinement: classic  # Needs filesystem access
+
+architectures:
+  - build-on: amd64
+  - build-on: arm64
+
+parts:
+  null-e:
+    plugin: rust
+    source: .
+    build-packages:
+      - pkg-config
+      - libssl-dev
+
+apps:
+  null-e:
+    command: bin/null-e

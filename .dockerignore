@@ -1,0 +1,10 @@
+target/
+.git/
+.github/
+.gitignore
+*.md
+!README.md
+Dockerfile
+.dockerignore
+dist/
+snap/

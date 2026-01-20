@@ -13,6 +13,8 @@
 
 null-e helps developers reclaim disk space by finding and cleaning development artifacts, caches, and unused files. It can detect and clean **100+ GB** of reclaimable space across your system.
 
+[![Crates.io](https://img.shields.io/crates/v/null-e.svg)](https://crates.io/crates/null-e)
+[![Downloads](https://img.shields.io/crates/d/null-e.svg)](https://crates.io/crates/null-e)
 ![Rust](https://img.shields.io/badge/rust-1.75+-orange.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg)
@@ -53,25 +55,48 @@ null-e helps developers reclaim disk space by finding and cleaning development a
 
 ## Installation
 
+### Using Cargo (Recommended)
+
+```bash
+cargo install null-e
+```
+
+### Pre-built Binaries
+
+Download from [GitHub Releases](https://github.com/us/null-e/releases):
+- **macOS**: `null-e-darwin-aarch64.tar.gz` (Apple Silicon) / `null-e-darwin-x86_64.tar.gz` (Intel)
+- **Linux**: `null-e-linux-x86_64.tar.gz` / `null-e-linux-aarch64.tar.gz`
+- **Windows**: `null-e-windows-x86_64.zip`
+
+### Package Managers
+
+```bash
+# Homebrew (macOS/Linux) - requires 75+ stars for homebrew-core
+brew install null-e          # coming soon
+
+# Scoop (Windows)
+scoop bucket add us https://github.com/us/scoop-bucket
+scoop install null-e
+
+# AUR (Arch Linux)
+yay -S null-e
+
+# Nix
+nix-env -iA nixpkgs.null-e   # coming soon
+```
+
+### Docker
+
+```bash
+docker run -v $(pwd):/workspace ghcr.io/us/null-e
+```
+
 ### From Source
 
 ```bash
 git clone https://github.com/us/null-e.git
 cd null-e
 cargo install --path .
-```
-
-### Using Cargo
-
-```bash
-cargo install null-e
-```
-
-### Using Homebrew (macOS)
-
-```bash
-brew tap us/tap
-brew install null-e
 ```
 
 ## Quick Start

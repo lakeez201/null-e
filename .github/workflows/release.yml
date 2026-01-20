@@ -9,8 +9,10 @@ env:
   CARGO_TERM_COLOR: always
   BINARY_NAME: null-e
 
+permissions:
+  contents: write
+
 jobs:
-  # Build binaries for all platforms
   build:
     name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
@@ -18,33 +20,33 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # macOS
-          - os: macos-latest
-            target: x86_64-apple-darwin
-            artifact_name: null-e
-            asset_name: null-e-x86_64-apple-darwin
-
-          - os: macos-latest
-            target: aarch64-apple-darwin
-            artifact_name: null-e
-            asset_name: null-e-aarch64-apple-darwin
-
           # Linux
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             artifact_name: null-e
-            asset_name: null-e-x86_64-unknown-linux-gnu
-
+            asset_name: null-e-linux-x86_64
           - os: ubuntu-latest
             target: x86_64-unknown-linux-musl
             artifact_name: null-e
-            asset_name: null-e-x86_64-unknown-linux-musl
-
+            asset_name: null-e-linux-x86_64-musl
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            artifact_name: null-e
+            asset_name: null-e-linux-aarch64
+          # macOS
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            artifact_name: null-e
+            asset_name: null-e-darwin-x86_64
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            artifact_name: null-e
+            asset_name: null-e-darwin-aarch64
           # Windows
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             artifact_name: null-e.exe
-            asset_name: null-e-x86_64-pc-windows-msvc
+            asset_name: null-e-windows-x86_64
 
     steps:
       - uses: actions/checkout@v4
@@ -57,6 +59,12 @@ jobs:
       - name: Install musl-tools (Linux musl)
         if: matrix.target == 'x86_64-unknown-linux-musl'
         run: sudo apt-get update && sudo apt-get install -y musl-tools
+
+      - name: Install cross-compilation tools (Linux aarch64)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
 
       - name: Cache cargo
         uses: actions/cache@v4
@@ -71,37 +79,41 @@ jobs:
 
       - name: Build
         run: cargo build --release --target ${{ matrix.target }}
+        env:
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
 
-      - name: Package (Unix)
+      - name: Create tarball (Unix)
         if: runner.os != 'Windows'
         run: |
           cd target/${{ matrix.target }}/release
-          tar -czvf ../../../${{ matrix.asset_name }}.tar.gz ${{ matrix.artifact_name }}
+          tar czvf ../../../${{ matrix.asset_name }}.tar.gz ${{ matrix.artifact_name }}
           cd ../../..
+          shasum -a 256 ${{ matrix.asset_name }}.tar.gz > ${{ matrix.asset_name }}.tar.gz.sha256
 
-      - name: Package (Windows)
+      - name: Create zip (Windows)
         if: runner.os == 'Windows'
+        shell: pwsh
         run: |
           cd target/${{ matrix.target }}/release
-          7z a ../../../${{ matrix.asset_name }}.zip ${{ matrix.artifact_name }}
+          Compress-Archive -Path ${{ matrix.artifact_name }} -DestinationPath ../../../${{ matrix.asset_name }}.zip
           cd ../../..
+          (Get-FileHash ${{ matrix.asset_name }}.zip -Algorithm SHA256).Hash.ToLower() + "  " + "${{ matrix.asset_name }}.zip" | Out-File -Encoding ASCII ${{ matrix.asset_name }}.zip.sha256
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.asset_name }}
           path: |
-            ${{ matrix.asset_name }}.tar.gz
-            ${{ matrix.asset_name }}.zip
+            *.tar.gz
+            *.tar.gz.sha256
+            *.zip
+            *.zip.sha256
+          if-no-files-found: ignore
 
-  # Create GitHub Release
   release:
     name: Create Release
     needs: build
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
     steps:
       - uses: actions/checkout@v4
 
@@ -110,44 +122,38 @@ jobs:
         with:
           path: artifacts
 
-      - name: Display structure
-        run: ls -la artifacts/
+      - name: Flatten artifacts
+        run: |
+          mkdir -p release
+          find artifacts -type f \( -name "*.tar.gz" -o -name "*.zip" -o -name "*.sha256" \) -exec mv {} release/ \;
+          ls -la release/
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            artifacts/**/*.tar.gz
-            artifacts/**/*.zip
+          files: release/*
           generate_release_notes: true
           draft: false
           prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Publish to crates.io
-  publish-crates:
+  publish-crate:
     name: Publish to crates.io
     needs: release
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Publish to crates.io
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Publish
         run: cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
-        continue-on-error: true  # Don't fail if already published
+        continue-on-error: true
 
-  # Update Homebrew tap
   update-homebrew:
     name: Update Homebrew Formula
     needs: release
     runs-on: ubuntu-latest
     if: ${{ !contains(github.ref, 'alpha') && !contains(github.ref, 'beta') && !contains(github.ref, 'rc') }}
-
     steps:
       - name: Update Homebrew formula
         uses: mislav/bump-homebrew-formula-action@v3
@@ -157,4 +163,4 @@ jobs:
           download-url: https://github.com/us/null-e/archive/refs/tags/${{ github.ref_name }}.tar.gz
         env:
           COMMITTER_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-        continue-on-error: true  # Don't fail if tap doesn't exist yet
+        continue-on-error: true
