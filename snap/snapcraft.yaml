@@ -14,6 +14,7 @@ description: |
   - Parallel scanning for speed
   - Analysis tools for stale projects and duplicates
 
+license: WTFPL
 grade: stable
 confinement: classic  # Needs filesystem access
 

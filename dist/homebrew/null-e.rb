@@ -5,7 +5,7 @@ class NullE < Formula
   desc "The friendly disk cleanup robot - send your cruft to /dev/null"
   homepage "https://github.com/us/null-e"
   version "0.1.0"
-  license "MIT"
+  license "WTFPL"
 
   on_macos do
     on_arm do

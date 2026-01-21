@@ -8,7 +8,7 @@ use ratatui::{
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{
-        Block, Borders, Clear, List, ListItem, Paragraph, Scrollbar, ScrollbarOrientation,
+        Block, Borders, Clear, Gauge, List, ListItem, Paragraph, Scrollbar, ScrollbarOrientation,
         ScrollbarState, Tabs,
     },
     Frame,
@@ -19,7 +19,7 @@ const ROBOT_SMALL: &str = "🤖";
 
 /// Main UI rendering function
 pub fn render(app: &mut App, frame: &mut Frame) {
-    let size = frame.size();
+    let size = frame.area();
 
     // Create main layout - hide tabs on ready screen
     let show_tabs = !matches!(app.state, AppState::Ready);
@@ -443,7 +443,7 @@ fn render_results(app: &mut App, frame: &mut Frame, area: Rect) {
 
         frame.render_stateful_widget(
             scrollbar,
-            area.inner(&Margin {
+            area.inner(Margin {
                 vertical: 1,
                 horizontal: 0,
             }),
@@ -619,25 +619,78 @@ fn render_error_screen(message: &str, frame: &mut Frame, area: Rect) {
     frame.render_widget(paragraph, area);
 }
 
-/// Render cleaning screen
-fn render_cleaning_screen(_app: &App, frame: &mut Frame, area: Rect) {
-    let text = vec![
-        Line::from(""),
-        Line::from(Span::styled(
-            "🗑️ Cleaning...",
-            Style::default()
-                .fg(Color::Yellow)
-                .add_modifier(Modifier::BOLD),
-        )),
-        Line::from(""),
-        Line::from("Moving items to trash..."),
-    ];
+/// Render cleaning screen with progress bar
+fn render_cleaning_screen(app: &App, frame: &mut Frame, area: Rect) {
+    let (icon, title, message, color) = if app.permanent_delete {
+        (
+            "🔥",
+            " PERMANENTLY DELETING ",
+            "Removing files permanently (cannot be recovered)...",
+            Color::Red,
+        )
+    } else {
+        (
+            "🗑️",
+            " Cleaning ",
+            "Moving items to trash...",
+            Color::Yellow,
+        )
+    };
 
-    let paragraph = Paragraph::new(text)
-        .block(Block::default().borders(Borders::ALL).title(" Cleaning "))
-        .alignment(Alignment::Center);
+    // Create layout with space for progress bar
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .margin(2)
+        .constraints([
+            Constraint::Length(3),  // Title
+            Constraint::Length(2),  // Spacer
+            Constraint::Length(3),  // Progress bar
+            Constraint::Length(2),  // Spacer
+            Constraint::Length(2),  // Item count
+            Constraint::Min(0),     // Rest
+        ])
+        .split(area);
 
-    frame.render_widget(paragraph, area);
+    // Title text
+    let title_text = Paragraph::new(Line::from(vec![
+        Span::styled(
+            format!("{} ", icon),
+            Style::default().fg(color),
+        ),
+        Span::styled(
+            "Cleaning...",
+            Style::default().fg(color).add_modifier(Modifier::BOLD),
+        ),
+    ]))
+    .alignment(Alignment::Center);
+    frame.render_widget(title_text, chunks[0]);
+
+    // Animated progress bar (pulses since we don't track individual file progress)
+    let progress = ((app.anim_frame % 20) as f64 / 20.0 * 0.3) + 0.7; // Pulse between 70-100%
+    let gauge = Gauge::default()
+        .block(Block::default().borders(Borders::ALL).border_style(Style::default().fg(color)))
+        .gauge_style(Style::default().fg(color).add_modifier(Modifier::BOLD))
+        .percent((progress * 100.0) as u16)
+        .label(Span::styled(
+            message,
+            Style::default().fg(Color::White).add_modifier(Modifier::BOLD),
+        ));
+    frame.render_widget(gauge, chunks[2]);
+
+    // Item count
+    let item_text = Paragraph::new(Line::from(Span::styled(
+        format!("Processing {} items...", app.pending_delete_items.len()),
+        Style::default().fg(Color::Cyan),
+    )))
+    .alignment(Alignment::Center);
+    frame.render_widget(item_text, chunks[4]);
+
+    // Border around the whole area
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .title(title)
+        .border_style(Style::default().fg(color));
+    frame.render_widget(block, area);
 }
 
 /// Render status bar
@@ -689,13 +742,20 @@ fn render_status_bar(app: &App, frame: &mut Frame, area: Rect) {
 
 /// Render confirmation dialog
 fn render_confirm_dialog(app: &App, frame: &mut Frame, area: Rect) {
-    let dialog_width = 50;
-    let dialog_height = 8;
+    let dialog_width = 55;
+    let dialog_height = 11;
 
     let dialog_area = centered_rect(dialog_width, dialog_height, area);
 
     // Clear the area behind the dialog
     frame.render_widget(Clear, dialog_area);
+
+    // Show delete mode
+    let mode_text = if app.permanent_delete {
+        Span::styled("🔥 PERMANENT (rm -rf)", Style::default().fg(Color::Red).add_modifier(Modifier::BOLD))
+    } else {
+        Span::styled("🗑️  Move to Trash", Style::default().fg(Color::Green))
+    };
 
     let text = vec![
         Line::from(""),
@@ -712,19 +772,25 @@ fn render_confirm_dialog(app: &App, frame: &mut Frame, area: Rect) {
             format_size(app.selected_size())
         )),
         Line::from(""),
+        Line::from(vec![Span::raw("Mode: "), mode_text]),
+        Line::from(""),
         Line::from(vec![
             Span::styled(" [y] ", Style::default().fg(Color::Green)),
             Span::raw("Yes  "),
             Span::styled(" [n] ", Style::default().fg(Color::Red)),
-            Span::raw("No"),
+            Span::raw("No  "),
+            Span::styled(" [p] ", Style::default().fg(Color::Magenta)),
+            Span::raw("Toggle Permanent"),
         ]),
     ];
+
+    let border_color = if app.permanent_delete { Color::Red } else { Color::Yellow };
 
     let dialog = Paragraph::new(text)
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .border_style(Style::default().fg(Color::Yellow))
+                .border_style(Style::default().fg(border_color))
                 .title(" Confirm "),
         )
         .alignment(Alignment::Center);

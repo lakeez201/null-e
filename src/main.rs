@@ -1198,8 +1198,11 @@ fn parse_selection(input: &str, max: usize) -> Vec<usize> {
 
 fn get_scan_paths(cli: &Cli) -> Result<Vec<PathBuf>> {
     if cli.paths.is_empty() {
-        // Use current directory
-        Ok(vec![std::env::current_dir()?])
+        // Use home directory for better default coverage
+        // This ensures we find all dev artifacts across the system
+        let home = dirs::home_dir()
+            .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
+        Ok(vec![home])
     } else {
         // Validate paths
         for path in &cli.paths {

@@ -40,6 +40,24 @@ pub enum ScanMode {
     IDECaches,
     /// Scan ML/AI caches
     MLCaches,
+    /// Scan Android Studio
+    Android,
+    /// Scan Electron apps
+    Electron,
+    /// Scan Cloud CLI (AWS, GCP, Azure, kubectl, Terraform)
+    Cloud,
+    /// Scan Homebrew/Package Managers
+    PackageManagers,
+    /// Scan game dev (Unity, Unreal, Godot)
+    GameDev,
+    /// Scan misc tools (Vagrant, Go, Ruby, Git LFS)
+    MiscTools,
+    /// Scan test browsers (Playwright, Cypress, Puppeteer)
+    TestBrowsers,
+    /// Scan system (Trash, Downloads, Temp)
+    System,
+    /// Scan logs
+    Logs,
 }
 
 impl ScanMode {
@@ -49,36 +67,63 @@ impl ScanMode {
             ScanMode::All,
             ScanMode::Projects,
             ScanMode::Caches,
-            ScanMode::Xcode,
+            ScanMode::System,
             ScanMode::Docker,
+            ScanMode::Xcode,
+            ScanMode::Android,
             ScanMode::IDECaches,
             ScanMode::MLCaches,
+            ScanMode::Electron,
+            ScanMode::Cloud,
+            ScanMode::PackageManagers,
+            ScanMode::GameDev,
+            ScanMode::MiscTools,
+            ScanMode::TestBrowsers,
+            ScanMode::Logs,
         ]
     }
 
     /// Get display name
     pub fn name(&self) -> &'static str {
         match self {
-            ScanMode::All => "Scan All",
-            ScanMode::Projects => "Projects",
+            ScanMode::All => "🔥 SCAN ALL",
+            ScanMode::Projects => "Dev Projects",
             ScanMode::Caches => "Global Caches",
             ScanMode::Xcode => "Xcode",
             ScanMode::Docker => "Docker",
             ScanMode::IDECaches => "IDE Caches",
             ScanMode::MLCaches => "ML/AI Models",
+            ScanMode::Android => "Android",
+            ScanMode::Electron => "Electron Apps",
+            ScanMode::Cloud => "Cloud CLI",
+            ScanMode::PackageManagers => "Package Managers",
+            ScanMode::GameDev => "Game Dev",
+            ScanMode::MiscTools => "Misc Tools",
+            ScanMode::TestBrowsers => "Test Browsers",
+            ScanMode::System => "System",
+            ScanMode::Logs => "Logs",
         }
     }
 
     /// Get description
     pub fn description(&self) -> &'static str {
         match self {
-            ScanMode::All => "Everything - projects, caches, Docker, Xcode, IDEs, ML",
+            ScanMode::All => "Everything! Maximum cleanup",
             ScanMode::Projects => "node_modules, target, venv, .gradle, vendor",
-            ScanMode::Caches => "npm, pip, cargo, brew, CocoaPods cache",
+            ScanMode::Caches => "npm, pip, cargo, brew, CocoaPods",
             ScanMode::Xcode => "DerivedData, Archives, Simulators",
-            ScanMode::Docker => "Images, Containers, Volumes, Build Cache",
-            ScanMode::IDECaches => "JetBrains, VS Code, Cursor caches",
-            ScanMode::MLCaches => "Huggingface, Ollama, PyTorch models",
+            ScanMode::Docker => "Images, Containers, Volumes",
+            ScanMode::IDECaches => "JetBrains, VS Code, Cursor",
+            ScanMode::MLCaches => "Huggingface, Ollama, PyTorch",
+            ScanMode::Android => "AVD, SDK, Gradle caches",
+            ScanMode::Electron => "Slack, Discord, Teams, etc.",
+            ScanMode::Cloud => "AWS, GCP, Azure, kubectl, Terraform",
+            ScanMode::PackageManagers => "Homebrew, apt, chocolatey",
+            ScanMode::GameDev => "Unity, Unreal, Godot",
+            ScanMode::MiscTools => "Vagrant, Go, Ruby, Git LFS, Maven",
+            ScanMode::TestBrowsers => "Playwright, Cypress, Puppeteer",
+            ScanMode::System => "Trash, Downloads, Temp files",
+            ScanMode::Logs => "System logs, crash reports",
         }
     }
 
@@ -92,6 +137,15 @@ impl ScanMode {
             ScanMode::Docker => "🐳",
             ScanMode::IDECaches => "💻",
             ScanMode::MLCaches => "🤖",
+            ScanMode::Android => "🤖",
+            ScanMode::Electron => "⚡",
+            ScanMode::Cloud => "☁️",
+            ScanMode::PackageManagers => "📦",
+            ScanMode::GameDev => "🎮",
+            ScanMode::MiscTools => "🔧",
+            ScanMode::TestBrowsers => "🧪",
+            ScanMode::System => "🗑️",
+            ScanMode::Logs => "📋",
         }
     }
 }
@@ -118,6 +172,8 @@ pub struct CleanerEntry {
     pub category: String,
     pub selected: bool,
     pub visible: bool,
+    /// Optional command to run instead of deleting the path (for Docker, etc.)
+    pub clean_command: Option<String>,
 }
 
 /// Main TUI application state
@@ -168,6 +224,10 @@ pub struct App {
     scan_receiver: Option<Receiver<ScanMessage>>,
     /// Animation frame counter
     pub anim_frame: usize,
+    /// Use permanent delete (rm -rf) instead of trash
+    pub permanent_delete: bool,
+    /// Items pending deletion (path, optional clean_command)
+    pub pending_delete_items: Vec<(PathBuf, Option<String>)>,
 }
 
 /// Application state/screen
@@ -236,7 +296,19 @@ impl App {
             total_size: 0,
             scan_receiver: None,
             anim_frame: 0,
+            permanent_delete: false,
+            pending_delete_items: Vec::new(),
         }
+    }
+
+    /// Toggle permanent delete option
+    pub fn toggle_permanent_delete(&mut self) {
+        self.permanent_delete = !self.permanent_delete;
+    }
+
+    /// Tick the animation frame (call on every tick for smooth animations)
+    pub fn tick_animation(&mut self) {
+        self.anim_frame = self.anim_frame.wrapping_add(1);
     }
 
     /// Move menu selection up
@@ -290,27 +362,22 @@ impl App {
         // Spawn scanning thread
         thread::spawn(move || {
             match mode {
-                ScanMode::All => {
-                    Self::scan_all(tx, paths);
-                }
-                ScanMode::Projects => {
-                    Self::scan_projects(tx, paths);
-                }
-                ScanMode::Caches => {
-                    Self::scan_caches(tx);
-                }
-                ScanMode::Xcode => {
-                    Self::scan_xcode(tx);
-                }
-                ScanMode::Docker => {
-                    Self::scan_docker(tx);
-                }
-                ScanMode::IDECaches => {
-                    Self::scan_ide_caches(tx);
-                }
-                ScanMode::MLCaches => {
-                    Self::scan_ml_caches(tx);
-                }
+                ScanMode::All => Self::scan_all(tx, paths),
+                ScanMode::Projects => Self::scan_projects(tx, paths),
+                ScanMode::Caches => Self::scan_caches(tx),
+                ScanMode::Xcode => Self::scan_xcode(tx),
+                ScanMode::Docker => Self::scan_docker(tx),
+                ScanMode::IDECaches => Self::scan_ide_caches(tx),
+                ScanMode::MLCaches => Self::scan_ml_caches(tx),
+                ScanMode::Android => Self::scan_android(tx),
+                ScanMode::Electron => Self::scan_electron(tx),
+                ScanMode::Cloud => Self::scan_cloud(tx),
+                ScanMode::PackageManagers => Self::scan_package_managers(tx),
+                ScanMode::GameDev => Self::scan_gamedev(tx),
+                ScanMode::MiscTools => Self::scan_misc_tools(tx),
+                ScanMode::TestBrowsers => Self::scan_test_browsers(tx),
+                ScanMode::System => Self::scan_system(tx),
+                ScanMode::Logs => Self::scan_logs(tx),
             }
         });
     }
@@ -341,6 +408,7 @@ impl App {
                     category: "Cache".to_string(),
                     selected: false,
                     visible: true,
+                    clean_command: None,
                 });
             }
         }
@@ -361,6 +429,7 @@ impl App {
                         category: item.category,
                         selected: false,
                         visible: true,
+                        clean_command: item.clean_command.clone(),
                     });
                 }
             }
@@ -383,6 +452,7 @@ impl App {
                         category: item.category,
                         selected: false,
                         visible: true,
+                        clean_command: item.clean_command.clone(),
                     });
                 }
             }
@@ -404,6 +474,7 @@ impl App {
                         category: item.category,
                         selected: false,
                         visible: true,
+                        clean_command: item.clean_command.clone(),
                     });
                 }
             }
@@ -425,12 +496,211 @@ impl App {
                         category: item.category,
                         selected: false,
                         visible: true,
+                        clean_command: item.clean_command.clone(),
                     });
                 }
             }
         }
 
-        // 6. Scan projects
+        // 6. Scan Android
+        let _ = tx.send(ScanMessage::Progress {
+            dirs_scanned: 0,
+            message: "Scanning Android...".to_string(),
+        });
+        if let Some(cleaner) = crate::cleaners::android::AndroidCleaner::new() {
+            if let Ok(items) = cleaner.detect() {
+                for item in items {
+                    all_cleaners.push(CleanerEntry {
+                        name: item.name,
+                        path: item.path,
+                        size: item.size,
+                        icon: item.icon.to_string(),
+                        category: item.category,
+                        selected: false,
+                        visible: true,
+                        clean_command: item.clean_command.clone(),
+                    });
+                }
+            }
+        }
+
+        // 7. Scan Electron
+        let _ = tx.send(ScanMessage::Progress {
+            dirs_scanned: 0,
+            message: "Scanning Electron apps...".to_string(),
+        });
+        if let Some(cleaner) = crate::cleaners::electron::ElectronCleaner::new() {
+            if let Ok(items) = cleaner.detect() {
+                for item in items {
+                    all_cleaners.push(CleanerEntry {
+                        name: item.name,
+                        path: item.path,
+                        size: item.size,
+                        icon: item.icon.to_string(),
+                        category: item.category,
+                        selected: false,
+                        visible: true,
+                        clean_command: item.clean_command.clone(),
+                    });
+                }
+            }
+        }
+
+        // 8. Scan Cloud CLI
+        let _ = tx.send(ScanMessage::Progress {
+            dirs_scanned: 0,
+            message: "Scanning Cloud CLI...".to_string(),
+        });
+        if let Some(cleaner) = crate::cleaners::cloud::CloudCliCleaner::new() {
+            if let Ok(items) = cleaner.detect() {
+                for item in items {
+                    all_cleaners.push(CleanerEntry {
+                        name: item.name,
+                        path: item.path,
+                        size: item.size,
+                        icon: item.icon.to_string(),
+                        category: item.category,
+                        selected: false,
+                        visible: true,
+                        clean_command: item.clean_command.clone(),
+                    });
+                }
+            }
+        }
+
+        // 9. Scan Package Managers
+        let _ = tx.send(ScanMessage::Progress {
+            dirs_scanned: 0,
+            message: "Scanning package managers...".to_string(),
+        });
+        if let Some(cleaner) = crate::cleaners::homebrew::HomebrewCleaner::new() {
+            if let Ok(items) = cleaner.detect() {
+                for item in items {
+                    all_cleaners.push(CleanerEntry {
+                        name: item.name,
+                        path: item.path,
+                        size: item.size,
+                        icon: item.icon.to_string(),
+                        category: item.category,
+                        selected: false,
+                        visible: true,
+                        clean_command: item.clean_command.clone(),
+                    });
+                }
+            }
+        }
+
+        // 10. Scan Game Dev
+        let _ = tx.send(ScanMessage::Progress {
+            dirs_scanned: 0,
+            message: "Scanning game dev tools...".to_string(),
+        });
+        if let Some(cleaner) = crate::cleaners::gamedev::GameDevCleaner::new() {
+            if let Ok(items) = cleaner.detect() {
+                for item in items {
+                    all_cleaners.push(CleanerEntry {
+                        name: item.name,
+                        path: item.path,
+                        size: item.size,
+                        icon: item.icon.to_string(),
+                        category: item.category,
+                        selected: false,
+                        visible: true,
+                        clean_command: item.clean_command.clone(),
+                    });
+                }
+            }
+        }
+
+        // 11. Scan Misc Tools
+        let _ = tx.send(ScanMessage::Progress {
+            dirs_scanned: 0,
+            message: "Scanning misc tools...".to_string(),
+        });
+        if let Some(cleaner) = crate::cleaners::misc::MiscCleaner::new() {
+            if let Ok(items) = cleaner.detect() {
+                for item in items {
+                    all_cleaners.push(CleanerEntry {
+                        name: item.name,
+                        path: item.path,
+                        size: item.size,
+                        icon: item.icon.to_string(),
+                        category: item.category,
+                        selected: false,
+                        visible: true,
+                        clean_command: item.clean_command.clone(),
+                    });
+                }
+            }
+        }
+
+        // 12. Scan Test Browsers
+        let _ = tx.send(ScanMessage::Progress {
+            dirs_scanned: 0,
+            message: "Scanning test browsers...".to_string(),
+        });
+        if let Some(cleaner) = crate::cleaners::browsers_test::TestBrowsersCleaner::new() {
+            if let Ok(items) = cleaner.detect() {
+                for item in items {
+                    all_cleaners.push(CleanerEntry {
+                        name: item.name,
+                        path: item.path,
+                        size: item.size,
+                        icon: item.icon.to_string(),
+                        category: item.category,
+                        selected: false,
+                        visible: true,
+                        clean_command: item.clean_command.clone(),
+                    });
+                }
+            }
+        }
+
+        // 13. Scan System
+        let _ = tx.send(ScanMessage::Progress {
+            dirs_scanned: 0,
+            message: "Scanning system files...".to_string(),
+        });
+        if let Some(cleaner) = crate::cleaners::system::SystemCleaner::new() {
+            if let Ok(items) = cleaner.detect() {
+                for item in items {
+                    all_cleaners.push(CleanerEntry {
+                        name: item.name,
+                        path: item.path,
+                        size: item.size,
+                        icon: item.icon.to_string(),
+                        category: item.category,
+                        selected: false,
+                        visible: true,
+                        clean_command: item.clean_command.clone(),
+                    });
+                }
+            }
+        }
+
+        // 14. Scan Logs
+        let _ = tx.send(ScanMessage::Progress {
+            dirs_scanned: 0,
+            message: "Scanning logs...".to_string(),
+        });
+        if let Some(cleaner) = crate::cleaners::logs::LogsCleaner::new() {
+            if let Ok(items) = cleaner.detect() {
+                for item in items {
+                    all_cleaners.push(CleanerEntry {
+                        name: item.name,
+                        path: item.path,
+                        size: item.size,
+                        icon: item.icon.to_string(),
+                        category: item.category,
+                        selected: false,
+                        visible: true,
+                        clean_command: item.clean_command.clone(),
+                    });
+                }
+            }
+        }
+
+        // 15. Scan projects
         let _ = tx.send(ScanMessage::Progress {
             dirs_scanned: 0,
             message: "Scanning development projects...".to_string(),
@@ -438,7 +708,17 @@ impl App {
         let registry = Arc::new(PluginRegistry::with_builtins());
         let scanner = ParallelScanner::new(registry);
         let mut config = ScanConfig::default();
-        config.roots = paths;
+
+        // Use home directory if paths is just current dir (for better project discovery)
+        let project_paths = if paths.len() == 1 && paths[0] == std::env::current_dir().unwrap_or_default() {
+            // Default to home directory for project scanning
+            dirs::home_dir()
+                .map(|h| vec![h])
+                .unwrap_or(paths.clone())
+        } else {
+            paths
+        };
+        config.roots = project_paths;
 
         if let Ok(result) = scanner.scan(&config) {
             for p in result.projects {
@@ -451,6 +731,7 @@ impl App {
                         category: format!("{:?}", p.kind),
                         selected: false,
                         visible: true,
+                        clean_command: None,
                     });
                 }
             }
@@ -469,8 +750,17 @@ impl App {
         let registry = Arc::new(PluginRegistry::with_builtins());
         let scanner = ParallelScanner::new(registry);
 
+        // Use home directory if paths is just current dir
+        let project_paths = if paths.len() == 1 && paths[0] == std::env::current_dir().unwrap_or_default() {
+            dirs::home_dir()
+                .map(|h| vec![h])
+                .unwrap_or(paths.clone())
+        } else {
+            paths
+        };
+
         let mut config = ScanConfig::default();
-        config.roots = paths;
+        config.roots = project_paths;
 
         match scanner.scan(&config) {
             Ok(result) => {
@@ -534,6 +824,7 @@ impl App {
                         category: item.category,
                         selected: false,
                         visible: true,
+                        clean_command: item.clean_command,
                     })
                     .collect();
                 let _ = tx.send(ScanMessage::CompleteCleaners(entries));
@@ -563,6 +854,7 @@ impl App {
                         category: item.category,
                         selected: false,
                         visible: true,
+                        clean_command: item.clean_command,
                     })
                     .collect();
                 let _ = tx.send(ScanMessage::CompleteCleaners(entries));
@@ -591,6 +883,7 @@ impl App {
                         category: item.category,
                         selected: false,
                         visible: true,
+                        clean_command: item.clean_command,
                     })
                     .collect();
                 let _ = tx.send(ScanMessage::CompleteCleaners(entries));
@@ -619,6 +912,268 @@ impl App {
                         category: item.category,
                         selected: false,
                         visible: true,
+                        clean_command: item.clean_command,
+                    })
+                    .collect();
+                let _ = tx.send(ScanMessage::CompleteCleaners(entries));
+                return;
+            }
+        }
+        let _ = tx.send(ScanMessage::CompleteCleaners(vec![]));
+    }
+
+    /// Scan Android
+    fn scan_android(tx: Sender<ScanMessage>) {
+        let _ = tx.send(ScanMessage::Progress {
+            dirs_scanned: 0,
+            message: "Scanning Android Studio...".to_string(),
+        });
+
+        if let Some(cleaner) = crate::cleaners::android::AndroidCleaner::new() {
+            if let Ok(items) = cleaner.detect() {
+                let entries: Vec<CleanerEntry> = items
+                    .into_iter()
+                    .map(|item| CleanerEntry {
+                        name: item.name,
+                        path: item.path,
+                        size: item.size,
+                        icon: item.icon.to_string(),
+                        category: item.category,
+                        selected: false,
+                        visible: true,
+                        clean_command: item.clean_command,
+                    })
+                    .collect();
+                let _ = tx.send(ScanMessage::CompleteCleaners(entries));
+                return;
+            }
+        }
+        let _ = tx.send(ScanMessage::CompleteCleaners(vec![]));
+    }
+
+    /// Scan Electron apps
+    fn scan_electron(tx: Sender<ScanMessage>) {
+        let _ = tx.send(ScanMessage::Progress {
+            dirs_scanned: 0,
+            message: "Scanning Electron app caches...".to_string(),
+        });
+
+        if let Some(cleaner) = crate::cleaners::electron::ElectronCleaner::new() {
+            if let Ok(items) = cleaner.detect() {
+                let entries: Vec<CleanerEntry> = items
+                    .into_iter()
+                    .map(|item| CleanerEntry {
+                        name: item.name,
+                        path: item.path,
+                        size: item.size,
+                        icon: item.icon.to_string(),
+                        category: item.category,
+                        selected: false,
+                        visible: true,
+                        clean_command: item.clean_command,
+                    })
+                    .collect();
+                let _ = tx.send(ScanMessage::CompleteCleaners(entries));
+                return;
+            }
+        }
+        let _ = tx.send(ScanMessage::CompleteCleaners(vec![]));
+    }
+
+    /// Scan Cloud CLI
+    fn scan_cloud(tx: Sender<ScanMessage>) {
+        let _ = tx.send(ScanMessage::Progress {
+            dirs_scanned: 0,
+            message: "Scanning Cloud CLI caches...".to_string(),
+        });
+
+        if let Some(cleaner) = crate::cleaners::cloud::CloudCliCleaner::new() {
+            if let Ok(items) = cleaner.detect() {
+                let entries: Vec<CleanerEntry> = items
+                    .into_iter()
+                    .map(|item| CleanerEntry {
+                        name: item.name,
+                        path: item.path,
+                        size: item.size,
+                        icon: item.icon.to_string(),
+                        category: item.category,
+                        selected: false,
+                        visible: true,
+                        clean_command: item.clean_command,
+                    })
+                    .collect();
+                let _ = tx.send(ScanMessage::CompleteCleaners(entries));
+                return;
+            }
+        }
+        let _ = tx.send(ScanMessage::CompleteCleaners(vec![]));
+    }
+
+    /// Scan Package Managers
+    fn scan_package_managers(tx: Sender<ScanMessage>) {
+        let _ = tx.send(ScanMessage::Progress {
+            dirs_scanned: 0,
+            message: "Scanning package managers...".to_string(),
+        });
+
+        if let Some(cleaner) = crate::cleaners::homebrew::HomebrewCleaner::new() {
+            if let Ok(items) = cleaner.detect() {
+                let entries: Vec<CleanerEntry> = items
+                    .into_iter()
+                    .map(|item| CleanerEntry {
+                        name: item.name,
+                        path: item.path,
+                        size: item.size,
+                        icon: item.icon.to_string(),
+                        category: item.category,
+                        selected: false,
+                        visible: true,
+                        clean_command: item.clean_command,
+                    })
+                    .collect();
+                let _ = tx.send(ScanMessage::CompleteCleaners(entries));
+                return;
+            }
+        }
+        let _ = tx.send(ScanMessage::CompleteCleaners(vec![]));
+    }
+
+    /// Scan Game Dev
+    fn scan_gamedev(tx: Sender<ScanMessage>) {
+        let _ = tx.send(ScanMessage::Progress {
+            dirs_scanned: 0,
+            message: "Scanning game development tools...".to_string(),
+        });
+
+        if let Some(cleaner) = crate::cleaners::gamedev::GameDevCleaner::new() {
+            if let Ok(items) = cleaner.detect() {
+                let entries: Vec<CleanerEntry> = items
+                    .into_iter()
+                    .map(|item| CleanerEntry {
+                        name: item.name,
+                        path: item.path,
+                        size: item.size,
+                        icon: item.icon.to_string(),
+                        category: item.category,
+                        selected: false,
+                        visible: true,
+                        clean_command: item.clean_command,
+                    })
+                    .collect();
+                let _ = tx.send(ScanMessage::CompleteCleaners(entries));
+                return;
+            }
+        }
+        let _ = tx.send(ScanMessage::CompleteCleaners(vec![]));
+    }
+
+    /// Scan Misc Tools
+    fn scan_misc_tools(tx: Sender<ScanMessage>) {
+        let _ = tx.send(ScanMessage::Progress {
+            dirs_scanned: 0,
+            message: "Scanning misc development tools...".to_string(),
+        });
+
+        if let Some(cleaner) = crate::cleaners::misc::MiscCleaner::new() {
+            if let Ok(items) = cleaner.detect() {
+                let entries: Vec<CleanerEntry> = items
+                    .into_iter()
+                    .map(|item| CleanerEntry {
+                        name: item.name,
+                        path: item.path,
+                        size: item.size,
+                        icon: item.icon.to_string(),
+                        category: item.category,
+                        selected: false,
+                        visible: true,
+                        clean_command: item.clean_command,
+                    })
+                    .collect();
+                let _ = tx.send(ScanMessage::CompleteCleaners(entries));
+                return;
+            }
+        }
+        let _ = tx.send(ScanMessage::CompleteCleaners(vec![]));
+    }
+
+    /// Scan Test Browsers
+    fn scan_test_browsers(tx: Sender<ScanMessage>) {
+        let _ = tx.send(ScanMessage::Progress {
+            dirs_scanned: 0,
+            message: "Scanning test browser binaries...".to_string(),
+        });
+
+        if let Some(cleaner) = crate::cleaners::browsers_test::TestBrowsersCleaner::new() {
+            if let Ok(items) = cleaner.detect() {
+                let entries: Vec<CleanerEntry> = items
+                    .into_iter()
+                    .map(|item| CleanerEntry {
+                        name: item.name,
+                        path: item.path,
+                        size: item.size,
+                        icon: item.icon.to_string(),
+                        category: item.category,
+                        selected: false,
+                        visible: true,
+                        clean_command: item.clean_command,
+                    })
+                    .collect();
+                let _ = tx.send(ScanMessage::CompleteCleaners(entries));
+                return;
+            }
+        }
+        let _ = tx.send(ScanMessage::CompleteCleaners(vec![]));
+    }
+
+    /// Scan System
+    fn scan_system(tx: Sender<ScanMessage>) {
+        let _ = tx.send(ScanMessage::Progress {
+            dirs_scanned: 0,
+            message: "Scanning system files...".to_string(),
+        });
+
+        if let Some(cleaner) = crate::cleaners::system::SystemCleaner::new() {
+            if let Ok(items) = cleaner.detect() {
+                let entries: Vec<CleanerEntry> = items
+                    .into_iter()
+                    .map(|item| CleanerEntry {
+                        name: item.name,
+                        path: item.path,
+                        size: item.size,
+                        icon: item.icon.to_string(),
+                        category: item.category,
+                        selected: false,
+                        visible: true,
+                        clean_command: item.clean_command,
+                    })
+                    .collect();
+                let _ = tx.send(ScanMessage::CompleteCleaners(entries));
+                return;
+            }
+        }
+        let _ = tx.send(ScanMessage::CompleteCleaners(vec![]));
+    }
+
+    /// Scan Logs
+    fn scan_logs(tx: Sender<ScanMessage>) {
+        let _ = tx.send(ScanMessage::Progress {
+            dirs_scanned: 0,
+            message: "Scanning log files...".to_string(),
+        });
+
+        if let Some(cleaner) = crate::cleaners::logs::LogsCleaner::new() {
+            if let Ok(items) = cleaner.detect() {
+                let entries: Vec<CleanerEntry> = items
+                    .into_iter()
+                    .map(|item| CleanerEntry {
+                        name: item.name,
+                        path: item.path,
+                        size: item.size,
+                        icon: item.icon.to_string(),
+                        category: item.category,
+                        selected: false,
+                        visible: true,
+                        clean_command: item.clean_command,
                     })
                     .collect();
                 let _ = tx.send(ScanMessage::CompleteCleaners(entries));
@@ -807,9 +1362,9 @@ impl App {
         self.ensure_visible();
     }
 
-    /// Ensure selected item is visible
+    /// Ensure selected item is visible - use default viewport of 15
     fn ensure_visible(&mut self) {
-        // Will be handled by ensure_visible_with_height
+        self.ensure_visible_with_height(15);
     }
 
     /// Ensure selected item is visible with viewport height
@@ -818,10 +1373,15 @@ impl App {
             return;
         }
 
-        if self.selected < self.scroll_offset {
-            self.scroll_offset = self.selected;
-        } else if self.selected >= self.scroll_offset + viewport_height {
-            self.scroll_offset = self.selected - viewport_height + 1;
+        // Always keep selection visible with some padding
+        let padding = 2;
+
+        if self.selected < self.scroll_offset + padding {
+            // Selection is too close to top - scroll up
+            self.scroll_offset = self.selected.saturating_sub(padding);
+        } else if self.selected >= self.scroll_offset + viewport_height - padding {
+            // Selection is too close to bottom - scroll down
+            self.scroll_offset = self.selected.saturating_sub(viewport_height - padding - 1);
         }
     }
 
@@ -1170,33 +1730,44 @@ impl App {
         self.update_status();
     }
 
-    /// Confirm and perform deletion
-    pub fn confirm_delete(&mut self) -> Vec<PathBuf> {
+    /// Start deletion - collects paths and sets Cleaning state
+    /// Actual deletion happens on next tick to allow UI to render
+    pub fn start_delete(&mut self) {
         self.state = AppState::Cleaning;
 
-        // Collect paths to delete
-        let mut paths: Vec<PathBuf> = self
+        // Collect items to delete (path, optional clean_command)
+        let mut items: Vec<(PathBuf, Option<String>)> = self
             .projects
             .iter()
             .filter(|p| p.selected)
-            .flat_map(|p| p.project.artifacts.iter().map(|a| a.path.clone()))
+            .flat_map(|p| p.project.artifacts.iter().map(|a| (a.path.clone(), None)))
             .collect();
 
-        // Add cache paths
+        // Add cache items (no clean_command)
         for cache in &self.caches {
             if cache.selected {
-                paths.push(cache.path.clone());
+                items.push((cache.path.clone(), None));
             }
         }
 
-        // Add cleaner paths
+        // Add cleaner items (may have clean_command for Docker, etc.)
         for cleaner in &self.cleaners {
             if cleaner.selected {
-                paths.push(cleaner.path.clone());
+                items.push((cleaner.path.clone(), cleaner.clean_command.clone()));
             }
         }
 
-        paths
+        self.pending_delete_items = items;
+    }
+
+    /// Check if we have pending deletions to process
+    pub fn has_pending_delete(&self) -> bool {
+        self.state == AppState::Cleaning && !self.pending_delete_items.is_empty()
+    }
+
+    /// Take pending delete items (clears them)
+    pub fn take_pending_delete_items(&mut self) -> Vec<(PathBuf, Option<String>)> {
+        std::mem::take(&mut self.pending_delete_items)
     }
 
     /// Mark deletion complete

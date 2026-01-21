@@ -13,6 +13,9 @@
 //! - Game Development (Unity, Unreal, Godot)
 //! - Cloud CLI (AWS, GCP, Azure, kubectl)
 //! - macOS System (orphaned containers, caches)
+//! - Misc tools (Vagrant, Git LFS, Go, Ruby, NuGet, Gradle, Maven)
+//! - Testing browsers (Playwright, Cypress, Puppeteer, Selenium)
+//! - System cleanup (Trash, Downloads, Temp, Big Files)
 
 pub mod xcode;
 pub mod android;
@@ -26,6 +29,9 @@ pub mod electron;
 pub mod gamedev;
 pub mod cloud;
 pub mod macos;
+pub mod misc;
+pub mod browsers_test;
+pub mod system;
 
 use crate::error::Result;
 use serde::{Deserialize, Serialize};

@@ -139,6 +139,8 @@ pub enum Action {
     ScrollDown,
     /// Go back to menu
     Back,
+    /// Toggle permanent delete mode
+    TogglePermanent,
     /// No action
     None,
 }
@@ -164,9 +166,9 @@ impl Action {
             KeyCode::Right | KeyCode::Char('l') => Action::Expand,
             KeyCode::Left | KeyCode::Char('h') => Action::Collapse,
 
-            // Selection
-            KeyCode::Char(' ') => Action::ToggleSelect,
-            KeyCode::Enter => Action::ToggleExpand,
+            // Selection - Enter to select, Space to expand
+            KeyCode::Enter => Action::ToggleSelect,
+            KeyCode::Char(' ') => Action::ToggleExpand,
             KeyCode::Char('a') => Action::SelectAll,
             KeyCode::Char('A') => Action::DeselectAll,
             KeyCode::Char('u') if !key.modifiers.contains(KeyModifiers::CONTROL) => Action::DeselectAll,
@@ -176,6 +178,7 @@ impl Action {
             KeyCode::Delete => Action::Delete,
             KeyCode::Char('y') => Action::Confirm,
             KeyCode::Char('n') => Action::Cancel,
+            KeyCode::Char('p') => Action::TogglePermanent,
             KeyCode::Char('?') => Action::Help,
             KeyCode::Char('s') => Action::Scan,
             KeyCode::Char('/') => Action::Search,

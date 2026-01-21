@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 authors = ["us"]
 description = "🤖 null-e: The friendly disk cleanup robot - Send your cruft to /dev/null"
-license = "MIT"
+license = "WTFPL"
 repository = "https://github.com/us/null-e"
 homepage = "https://github.com/us/null-e"
 keywords = ["cleanup", "disk-space", "developer-tools", "cache", "cli"]
@@ -13,7 +13,7 @@ readme = "README.md"
 
 [dependencies]
 # Error handling
-thiserror = "1.0"
+thiserror = "2.0"
 anyhow = "1.0"
 
 # Serialization
@@ -22,49 +22,49 @@ serde_json = "1.0"
 toml = "0.8"
 
 # Async/Parallel processing
-rayon = "1.8"
+rayon = "1.11"
 crossbeam-channel = "0.5"
 parking_lot = "0.12"
-dashmap = "5.5"
+dashmap = "6.1"
 
 # Filesystem operations
 jwalk = "0.8"
-walkdir = "2.4"
+walkdir = "2.5"
 ignore = "0.4"
 globset = "0.4"
-dirs = "5.0"
+dirs = "6.0"
 fs_extra = "1.3"
 
 # Git integration
-gix = { version = "0.58", default-features = false, features = ["max-performance", "status"] }
+gix = { version = "0.77", default-features = false, features = ["max-performance", "status"] }
 
 # Trash support (cross-platform)
-trash = "3.3"
+trash = "5.2"
 
 # TUI (Terminal User Interface)
-ratatui = "0.26"
-crossterm = "0.27"
+ratatui = "0.30"
+crossterm = "0.29"
 
 # CLI
-clap = { version = "4.4", features = ["derive", "env", "color"] }
+clap = { version = "4.5", features = ["derive", "env", "color"] }
 
 # Utilities
-uuid = { version = "1.6", features = ["v4"] }
+uuid = { version = "1.19", features = ["v4"] }
 humansize = "2.1"
 chrono = { version = "0.4", features = ["serde"] }
-colored = "2.1"
+colored = "3.0"
 indicatif = "0.17"
-console = "0.15"
-num_cpus = "1.16"
-once_cell = "1.19"
-regex = "1.10"
+console = "0.16"
+num_cpus = "1.17"
+once_cell = "1.21"
+regex = "1.12"
 
 # Logging
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 # Docker (optional)
-bollard = { version = "0.16", optional = true }
+bollard = { version = "0.20", optional = true }
 
 [dev-dependencies]
 tempfile = "3.9"

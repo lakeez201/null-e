@@ -98,11 +98,11 @@ impl DockerCleaner {
                         description: desc,
                         safe_to_delete: safety,
                         clean_command: Some(match type_name {
-                            "Images" => "docker image prune -a".to_string(),
-                            "Containers" => "docker container prune".to_string(),
-                            "Local Volumes" => "docker volume prune".to_string(),
-                            "Build Cache" => "docker builder prune".to_string(),
-                            _ => "docker system prune".to_string(),
+                            "Images" => "docker image prune -af".to_string(),
+                            "Containers" => "docker container prune -f".to_string(),
+                            "Local Volumes" => "docker volume prune -f".to_string(),
+                            "Build Cache" => "docker builder prune -f".to_string(),
+                            _ => "docker system prune -f".to_string(),
                         }),
                     });
                 }
@@ -143,7 +143,7 @@ impl DockerCleaner {
                         last_modified: None,
                         description: "Untagged image not used by any container.",
                         safe_to_delete: SafetyLevel::Safe,
-                        clean_command: Some(format!("docker rmi {}", id)),
+                        clean_command: Some(format!("docker rmi -f {}", id)),
                     });
                 }
             }
@@ -192,7 +192,7 @@ impl DockerCleaner {
                     last_modified: None,
                     description: "Stopped container that can be removed.",
                     safe_to_delete: SafetyLevel::Safe,
-                    clean_command: Some(format!("docker rm {}", id)),
+                    clean_command: Some(format!("docker rm -f {}", id)),
                 });
             }
         }

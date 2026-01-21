@@ -98,9 +98,11 @@ fn run_app(
                     }
                     AppState::Confirming => match action {
                         Action::Confirm => {
-                            let paths = app.confirm_delete();
-                            let (success, failed, freed) = delete_paths(&paths);
-                            app.deletion_complete(success, failed, freed);
+                            // Start deletion - actual delete happens on next tick
+                            app.start_delete();
+                        }
+                        Action::TogglePermanent => {
+                            app.toggle_permanent_delete();
                         }
                         Action::Cancel | Action::Quit => {
                             app.cancel_delete();
@@ -114,7 +116,7 @@ fn run_app(
                         }
                         Action::Up | Action::ScrollUp => app.menu_up(),
                         Action::Down | Action::ScrollDown => app.menu_down(),
-                        Action::ToggleExpand | Action::Scan | Action::Confirm => {
+                        Action::ToggleSelect | Action::Scan | Action::Confirm => {
                             // Enter key or 's' key starts scan
                             app.start_scan();
                         }
@@ -162,14 +164,44 @@ fn run_app(
                         _ => {}
                     },
                     AppState::Cleaning => {
-                        // No actions during cleaning
+                        // Allow quit during cleaning
+                        if matches!(action, Action::Quit | Action::Cancel) {
+                            app.pending_delete_items.clear();
+                            app.state = AppState::Results;
+                            app.status_message = Some("Cleaning cancelled".to_string());
+                        }
                     }
                 }
             }
             Event::Tick => {
+                // Always tick animation for smooth UI
+                app.tick_animation();
+
                 // Check for scan updates on every tick
                 if app.state == AppState::Scanning {
                     app.check_scan_progress();
+                }
+
+                // Process pending deletions (runs after UI has rendered Cleaning state)
+                if app.has_pending_delete() {
+                    let items = app.take_pending_delete_items();
+                    let permanent = app.permanent_delete;
+
+                    // Wrap in catch_unwind to handle panics gracefully
+                    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                        delete_items(&items, permanent)
+                    }));
+
+                    match result {
+                        Ok((success, failed, freed)) => {
+                            app.deletion_complete(success, failed, freed);
+                        }
+                        Err(_) => {
+                            // Panic during deletion - recover gracefully
+                            app.deletion_complete(0, items.len(), 0);
+                            app.status_message = Some("Error during deletion!".to_string());
+                        }
+                    }
                 }
             }
             Event::Resize(_, _) => {
@@ -203,13 +235,21 @@ fn run_app(
     Ok(())
 }
 
-/// Delete paths and return (success_count, fail_count, bytes_freed)
-fn delete_paths(paths: &[PathBuf]) -> (usize, usize, u64) {
+/// Delete items and return (success_count, fail_count, bytes_freed)
+/// Items are tuples of (path, optional clean_command)
+/// If clean_command is Some, run that command instead of deleting the path
+fn delete_items(items: &[(PathBuf, Option<String>)], permanent: bool) -> (usize, usize, u64) {
     let mut success = 0;
     let mut failed = 0;
     let mut freed = 0u64;
 
-    for path in paths {
+    let method = if permanent {
+        DeleteMethod::Permanent
+    } else {
+        DeleteMethod::Trash
+    };
+
+    for (path, clean_command) in items {
         // Get size before deletion
         let size = if path.is_dir() {
             dir_size(path)
@@ -217,8 +257,16 @@ fn delete_paths(paths: &[PathBuf]) -> (usize, usize, u64) {
             std::fs::metadata(path).map(|m| m.len()).unwrap_or(0)
         };
 
-        // Delete using trash
-        match delete_path(path, DeleteMethod::Trash) {
+        // If there's a clean_command, run it instead of deleting the path
+        let result = if let Some(cmd) = clean_command {
+            // Run the clean command (e.g., "docker rmi abc123")
+            run_clean_command(cmd)
+        } else {
+            // Delete using selected method
+            delete_path(path, method).map(|_| ())
+        };
+
+        match result {
             Ok(_) => {
                 success += 1;
                 freed += size;
@@ -230,6 +278,25 @@ fn delete_paths(paths: &[PathBuf]) -> (usize, usize, u64) {
     }
 
     (success, failed, freed)
+}
+
+/// Run a shell command for cleaning (Docker, etc.)
+fn run_clean_command(cmd: &str) -> crate::error::Result<()> {
+    use std::process::Command;
+
+    let output = if cfg!(target_os = "windows") {
+        Command::new("cmd").args(["/C", cmd]).output()
+    } else {
+        Command::new("sh").args(["-c", cmd]).output()
+    };
+
+    match output {
+        Ok(out) if out.status.success() => Ok(()),
+        Ok(out) => Err(crate::error::DevSweepError::Other(
+            String::from_utf8_lossy(&out.stderr).to_string(),
+        )),
+        Err(e) => Err(crate::error::DevSweepError::Other(e.to_string())),
+    }
 }
 
 /// Calculate directory size

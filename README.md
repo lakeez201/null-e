@@ -1,4 +1,4 @@
-# null-e 🤖
+# null-e - Disk Cleanup Tool for Developers 🤖
 
 ```
      .---.
@@ -9,14 +9,16 @@
      /| |\
 ```
 
+> **Clean node_modules, target, .venv, Docker images, Xcode DerivedData, and 50+ cache types. Reclaim 100+ GB of disk space.**
+
 **The Friendly Disk Cleanup Robot** - Inspired by Wall-E, powered by Rust.
 
-null-e helps developers reclaim disk space by finding and cleaning development artifacts, caches, and unused files. It can detect and clean **100+ GB** of reclaimable space across your system.
+null-e is a fast, cross-platform disk cleanup CLI tool that helps developers reclaim disk space by finding and cleaning development artifacts, build caches, and unused files. Works on **macOS**, **Linux**, and **Windows**.
 
 [![Crates.io](https://img.shields.io/crates/v/null-e.svg)](https://crates.io/crates/null-e)
 [![Downloads](https://img.shields.io/crates/d/null-e.svg)](https://crates.io/crates/null-e)
 ![Rust](https://img.shields.io/badge/rust-1.75+-orange.svg)
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![License](https://img.shields.io/badge/license-WTFPL-brightgreen.svg)
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg)
 
 ## Why "null-e"?
