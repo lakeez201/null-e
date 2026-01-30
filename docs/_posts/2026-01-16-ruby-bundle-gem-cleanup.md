@@ -2,7 +2,7 @@
 layout: post
 title: "Ruby Bundle and Gem Cache Cleanup: Reclaim 5-20GB from Ruby Projects"
 description: "Ruby developers lose disk space to vendor/bundle and gem caches. Learn how to safely clean Ruby dependencies, gem directories, and old projects. Complete guide for Rails and Ruby developers."
-date: 2024-02-24
+date: 2026-01-16
 author: us
 tags: [ruby, rails, bundle, gem, vendor, disk-cleanup, rubygems, rbenv, rvm]
 ---

@@ -2,7 +2,7 @@
 layout: post
 title: "Java Gradle and Maven Cleanup: Reclaim 20-100GB from Build Directories"
 description: "Java developers lose massive disk space to target/, build/, and .gradle/. Learn how to safely clean Java build artifacts, Maven local repository, and Gradle caches. Complete guide with real developer stories."
-date: 2024-02-18
+date: 2026-01-10
 author: us
 tags: [java, gradle, maven, kotlin, build-directory, disk-cleanup, target-folder, gradle-cache]
 ---

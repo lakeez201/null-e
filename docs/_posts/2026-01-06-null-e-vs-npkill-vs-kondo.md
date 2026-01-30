@@ -2,7 +2,7 @@
 layout: post
 title: "null-e vs npkill vs kondo: The Ultimate Disk Cleanup Tool Comparison"
 description: "Complete comparison of the best disk cleanup tools for developers. Find out which tool is right for you: null-e, npkill, or kondo. Features, performance, safety, and real-world results."
-date: 2024-02-01
+date: 2026-01-06
 author: us
 tags: [comparison, npkill, kondo, disk-cleanup, developer-tools, node-modules, rust, python]
 ---

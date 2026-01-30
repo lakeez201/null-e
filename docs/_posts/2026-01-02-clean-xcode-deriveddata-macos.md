@@ -1,10 +1,10 @@
 ---
 layout: post
-title: "Xcode DerivedData Cleanup: Reclaim 50-150GB from iOS/macOS Development"
-description: "Xcode consumes massive disk space with DerivedData, simulators, and archives. Learn how to safely clean Xcode artifacts, fix 'not enough disk space' errors, and prevent storage bloat. Complete guide for iOS developers."
-date: 2024-02-21
+title: "How to Clean Xcode DerivedData and Free Up 50GB+ on macOS: Complete iOS Developer Guide"
+description: "Complete guide to cleaning Xcode DerivedData, old simulators, device support files, and archives on macOS. Learn how to reclaim 50-150GB of disk space safely."
+date: 2026-01-02
 author: us
-tags: [xcode, ios-development, deriveddata, macos, swift, disk-cleanup, simulators]
+tags: [xcode, macos, ios-development, disk-cleanup, swift, deriveddata, simulators]
 ---
 
 [![null-e - Disk Cleanup Tool for Developers](https://img.shields.io/crates/v/null-e.svg)](https://crates.io/crates/null-e)
@@ -316,23 +316,6 @@ Everything visible. Safety levels clear. You decide what to clean.
 
 **<!-- TODO: INSERT IMAGE - Screenshot of null-e xcode showing artifacts with safety levels -->
 
-### Safety Levels for Xcode
-
-```
-✓ Safe          - Safe to delete, will regenerate
-~ SafeWithCost  - Safe but rebuild/re-download needed
-! Caution       - Check dependencies before deleting
-```
-
-- **Old DerivedData** (6+ months): ✓ Safe
-- **Recent DerivedData** (1 week): ~ SafeWithCost (slower rebuild)
-- **Unavailable simulators**: ✓ Safe
-- **Current simulator**: ~ SafeWithCost (need to re-download)
-- **Old device support**: ✓ Safe
-- **Current device support**: ~ SafeWithCost
-- **Old archives** (6+ months): ✓ Safe
-- **Recent archives**: ~ SafeWithCost
-
 ### Clean with Control
 
 ```bash
@@ -356,122 +339,74 @@ Clean which items?
 
 You choose. Safe items clearly marked. No surprises.
 
-### Deep Sweep
-
-```bash
-# Find everything including Xcode
-null-e sweep
-
-# Shows:
-🧹 Deep Scan Results:
-🔨 Xcode: 83.2 GB
-   ├── DerivedData: 47 projects (45.2 GB)
-   ├── Simulators: 12 devices (28.1 GB)
-   ├── Device Support: 8 versions (8.2 GB)
-   └── Archives: 23 archives (8.2 GB)
-
-🐳 Docker: 34.5 GB
-🐍 Python: 12.1 GB
-...
-```
-
-Xcode in context with other cleanup opportunities.
-
-**<!-- TODO: INSERT IMAGE - Screenshot of null-e sweep showing Xcode among other categories -->
+**<!-- TODO: INSERT IMAGE - Screenshot of null-e xcode cleanup results -->
 
 ---
 
-## Xcode-Specific Cleanup with null-e
+## What's Safe to Delete?
 
-### DerivedData Cleaning
+| Item | Safety | Why |
+|------|--------|-----|
+| **DerivedData** | ✓ Safe | Rebuilds automatically |
+| **Unavailable Simulators** | ✓ Safe | Old iOS versions |
+| **Old Device Support** | ~ SafeWithCost | Keep current + 1 previous |
+| **Old Archives** | ! Caution | Keep if you need crash logs |
 
-null-e knows which DerivedData is safe:
+null-e marks every item so you know exactly what you're deleting.
 
-```bash
-null-e xcode --clean
+---
 
-# Interactive:
-✓ Found 47 DerivedData folders (45.2 GB)
+## Pro Tips
 
-   [1] ✓ OldApp (12.5 GB) - 6 months ago
-   [2] ✓ Experiment (2.1 GB) - 8 months ago
-   [3] ~ CurrentProject (15.1 GB) - 1 week ago
+### 1. Keep Recent Device Support
 
-Clean which?
-> 1,2
-
-⚠️ Note: Cleaning DerivedData requires rebuild.
-   First build will be slower.
-
-Continue? [Y/n]
-> Y
-
-✓ Cleaned 2 projects, freed 14.6 GB
-```
-
-Old projects cleaned. Current one preserved. Clear warnings.
-
-### Simulator Management
+If you debug on real devices, keep support files for iOS versions you actively test:
 
 ```bash
+# null-e shows which versions exist
 null-e xcode
-
-# Shows:
-Simulators:
-   [1] ✓ iOS 15.0 (5.2 GB) - Unavailable (Xcode too new)
-   [2] ✓ iOS 16.0 (6.1 GB) - Unavailable
-   [3] ~ iOS 17.0 (7.0 GB) - Active for testing
-   [4] ~ iOS 17.1 (7.1 GB) - Latest, recommended
-
-Clean unavailable simulators? [Y/n]
-> Y
-
-✓ Cleaned 2 simulators, freed 11.3 GB
 ```
 
-Unavailable (old) simulators clearly marked. Safe to remove.
+### 2. Clean DerivedData Regularly
 
-### Device Support Cleanup
+DerivedData is always safe to delete - it just rebuilds:
+
+```bash
+# Quick DerivedData clean
+null-e xcode --clean
+# Select "DerivedData" only
+```
+
+### 3. Remove Unavailable Simulators
+
+When you update Xcode, old simulator runtimes become "unavailable":
 
 ```bash
 null-e xcode --clean
-
-# Shows:
-Device Support:
-   [1] ~ iOS 17.2 (1.8 GB) - Current development device
-   [2] ~ iOS 17.1 (1.6 GB) - Keep for testing
-   [3] ✓ iOS 16.5 (1.4 GB) - No devices on this version
-   [4] ✓ iOS 15.2 (1.2 GB) - Very old
-
-Clean which?
-> 3,4
-
-✓ Cleaned old device support, freed 2.6 GB
+# Shows unavailable simulators clearly marked
 ```
 
-Keep current + 1 previous. Clean the rest.
+---
 
-### Archive Management
+## Full Xcode Cleanup Checklist
 
-```bash
-null-e xcode --clean
+1. **DerivedData** - Delete all, rebuilds automatically
+2. **Unavailable Simulators** - Safe to delete
+3. **Device Support** - Keep last 2-3 iOS versions
+4. **Archives** - Keep recent ones for crash symbolication
+5. **Caches** - `~/Library/Caches/com.apple.dt.Xcode`
 
-# Shows:
-Archives:
-   [1] ✓ 2023-Q2 (8.2 GB) - 6+ months old
-   [2] ✓ 2023-Q3 (6.1 GB) - 3+ months old
-   [3] ~ 2023-Q4 (4.8 GB) - Recent
-   [4] ~ 2024-Q1 (2.1 GB) - Current
+---
 
-Clean old archives? [Y/n]
-> Y
+## Results
 
-✓ Cleaned old archives, freed 14.3 GB
+Typical savings after Xcode cleanup:
+
 ```
-
-Keep recent for debugging. Clean ancient ones.
-
-**<!-- TODO: INSERT IMAGE - Before/After showing Xcode cleanup results -->
+Before: 127 GB used
+After:   73 GB used
+Freed:   54 GB
+```
 
 ---
 
@@ -528,8 +463,6 @@ null-e xcode --clean
 
 # Before Xcode updates
 null-e xcode --clean
-
-# Or add to calendar reminder
 ```
 
 **<!-- TODO: INSERT IMAGE - Workflow diagram: Check → Clean → Update Xcode → Repeat -->
@@ -572,40 +505,9 @@ Catch bloat before it becomes a crisis.
 
 ---
 
-## Take Back Your Disk Space Today
+## Conclusion
 
 Don't let Xcode own your Mac.
-
-**[Install null-e →](https://github.com/us/null-e)**
-
-```bash
-# Install
-cargo install null-e
-
-# Check Xcode usage
-null-e xcode
-
-# Clean safely
-null-e xcode --clean
-```
-
-### What You'll Reclaim
-
-| Category | Typical Savings |
-|----------|---------------|
-| Old DerivedData | 15-40 GB |
-| Unavailable simulators | 10-25 GB |
-| Old device support | 5-15 GB |
-| Old archives | 10-30 GB |
-| SwiftUI preview cache | 10-40 GB |
-| **Total** | **50-150 GB** |
-
-That's not just disk space. That's:
-- ✅ Xcode updates that actually work
-- ✅ No more "System Data" mystery
-- ✅ Space for photos, music, other apps
-- ✅ A Mac that works for you, not just Xcode
-- ✅ Professional pride in a clean machine
 
 > *"Xcode is a huge offender... Almost 80GB disk footprint… just to develop software?"* — **Hacker News**
 

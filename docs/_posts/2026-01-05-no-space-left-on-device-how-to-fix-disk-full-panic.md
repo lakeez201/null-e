@@ -2,7 +2,7 @@
 layout: post
 title: "No Space Left on Device": How to Fix the Developer's Worst Panic Moment
 description: "Your build failed. 'No space left on device' appeared. Now what? Learn how to safely reclaim 50-200GB of disk space without breaking your environment. Complete guide with real developer stories."
-date: 2024-02-01
+date: 2026-01-05
 author: us
 tags: [disk-cleanup, developer-tools, docker, xcode, node-modules, wsl2, panic-fix]
 ---

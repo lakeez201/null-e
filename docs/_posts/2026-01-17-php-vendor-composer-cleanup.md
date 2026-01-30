@@ -2,7 +2,7 @@
 layout: post
 title: "PHP vendor/ Directory Cleanup: Reclaim 5-30GB from Composer Dependencies"
 description: "PHP developers lose disk space to vendor/ directories and Composer cache. Learn how to safely clean PHP dependencies, Composer global packages, and old projects. Complete guide for Laravel and Symfony developers."
-date: 2024-02-25
+date: 2026-01-17
 author: us
 tags: [php, composer, vendor, laravel, symfony, disk-cleanup, dependencies, autoload]
 ---

@@ -2,7 +2,7 @@
 layout: post
 title: "Homebrew Cleanup: Reclaim 2-20GB from Downloads, Cache, and Old Versions"
 description: "Homebrew accumulates downloads, old versions, and cache. Learn how to safely clean Homebrew packages, remove outdated versions, and free up disk space on macOS. Complete guide for macOS developers."
-date: 2024-02-27
+date: 2026-01-19
 author: us
 tags: [homebrew, brew, macos, cleanup, downloads, cache, old-versions, disk-cleanup]
 ---

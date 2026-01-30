@@ -2,7 +2,7 @@
 layout: post
 title: "Clean Rust target/ Folders and Save 50GB+ of Disk Space"
 description: "Complete guide to cleaning Rust target directories and cargo cache. Learn how to safely reclaim 20-80GB from build artifacts and prevent 'no space left on device' errors."
-date: 2024-01-31
+date: 2026-01-04
 author: us
 tags: [rust, cargo, disk-cleanup, developer-tools, target-folder, rustlang, build-artifacts]
 ---

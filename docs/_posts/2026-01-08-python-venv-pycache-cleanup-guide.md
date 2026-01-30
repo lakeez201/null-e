@@ -2,7 +2,7 @@
 layout: post
 title: "How .venv and __pycache__ Are Eating Your Disk Space (And How to Clean Python Projects Safely)"
 description: "Python developers lose 10-50GB to virtual environments and cache files. Learn how to safely clean .venv, __pycache__, and pip cache without breaking your projects. Complete guide with real developer stories."
-date: 2024-02-16
+date: 2026-01-08
 author: us
 tags: [python, virtualenv, venv, pycache, pip, disk-cleanup, pyenv, conda]
 ---

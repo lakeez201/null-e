@@ -2,7 +2,7 @@
 layout: post
 title: "Rust target/ Directory Cleanup: Reclaim 10-100GB from Build Artifacts"
 description: "Rust developers lose massive disk space to target/ directories. Learn how to safely clean Rust build artifacts, cargo cache, and old projects. Complete guide with cargo clean alternatives."
-date: 2024-02-17
+date: 2026-01-09
 author: us
 tags: [rust, cargo, target-directory, disk-cleanup, build-artifacts, rustlang, cargo-clean]
 ---

@@ -2,7 +2,7 @@
 layout: post
 title: ".NET Build Artifacts Cleanup: Reclaim 10-50GB from bin/, obj/, and NuGet Cache"
 description: ".NET developers lose disk space to bin/, obj/, and NuGet packages. Learn how to safely clean C# build artifacts, global-packages cache, and old projects. Complete guide for .NET developers."
-date: 2024-02-23
+date: 2026-01-15
 author: us
 tags: [dotnet, csharp, bin-obj, nuget, disk-cleanup, build-artifacts, visual-studio, msbuild]
 ---

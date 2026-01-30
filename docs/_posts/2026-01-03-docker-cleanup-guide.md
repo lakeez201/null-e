@@ -1,10 +1,10 @@
 ---
 layout: post
-title: "Docker Disk Space Cleanup: Reclaim 50-200GB from Images, Containers, and Volumes"
-description: "Docker consumes massive disk space with images, containers, and volumes. Learn how to safely clean Docker resources, fix WSL2 disk bloat, and prevent 'no space left on device' errors. Complete guide with real developer stories."
-date: 2024-02-20
+title: "Docker Cleanup: Remove Unused Images, Containers, and Volumes to Reclaim 50GB+"
+description: "Complete guide to cleaning Docker images, containers, volumes, and build cache. Learn how to safely reclaim 50-200GB of disk space and prevent 'no space left on device' errors."
+date: 2026-01-03
 author: us
-tags: [docker, containers, disk-cleanup, wsl2, docker-desktop, images, volumes, devops]
+tags: [docker, containers, disk-cleanup, devops, developer-tools, wsl2, docker-desktop]
 ---
 
 [![null-e - Disk Cleanup Tool for Developers](https://img.shields.io/crates/v/null-e.svg)](https://crates.io/crates/null-e)
@@ -251,21 +251,6 @@ Not user-friendly. Not documented well.
 
 ---
 
-## The Many Commands Problem
-
-| What You Want | Command | Risk |
-|--------------|---------|------|
-| Clean images | `docker image prune` | Medium |
-| Clean containers | `docker container prune` | Low |
-| Clean volumes | `docker volume prune` | **High** |
-| Clean build cache | `docker builder prune` | Low |
-| Clean everything | `docker system prune -a` | High |
-| Shrink WSL2 | PowerShell + optimize-vhd | Complex |
-
-Six commands. Different risks. No unified view.
-
----
-
 ## The Real Solution: null-e for Docker
 
 **[Install null-e →](https://github.com/us/null-e)**
@@ -318,21 +303,6 @@ Everything visible. Safety levels clear. You decide what to clean.
 
 **<!-- TODO: INSERT IMAGE - Screenshot of null-e docker showing resources with safety levels -->
 
-### Safety Levels Explained
-
-```
-✓ Safe          - Can delete, will regenerate or is unused
-~ SafeWithCost  - Safe but may need re-download/rebuild
-! Caution       - May have data, check before deleting
-⚠ Dangerous     - High risk, has active dependencies
-```
-
-- **Stopped containers**: ✓ Safe
-- **Dangling images**: ✓ Safe
-- **Unused images**: ~ SafeWithCost (need re-pull)
-- **Volumes**: ! Caution (may have data)
-- **In-use resources**: ⚠ Dangerous (don't touch)
-
 ### Clean with Control
 
 ```bash
@@ -383,64 +353,123 @@ null-e detects WSL2. Explains the problem. Offers help.
 
 ---
 
-## Docker-Specific Cleanup with null-e
+## What's Safe to Delete?
 
-### Safe Cleanup (Default)
+| Resource | Safe? | Notes |
+|----------|-------|-------|
+| **Dangling images** | Yes | Untagged intermediate layers |
+| **Unused images** | Usually | Images not used by containers |
+| **Stopped containers** | Usually | Unless you need logs |
+| **Unused volumes** | **Careful** | May contain important data |
+| **Build cache** | Yes | Just slows next build |
+
+null-e marks every item so you know exactly what you're deleting.
+
+---
+
+## Docker Cleanup Strategy
+
+### Daily Development
 
 ```bash
+# Quick cleanup - safe stuff only
 null-e docker --clean
-
-# Default behavior:
-# ✅ Cleans stopped containers
-# ✅ Cleans dangling images
-# ✅ Cleans unused images
-# ✅ Cleans build cache
-# ❌ Excludes volumes (safety)
 ```
 
-Safe defaults. You opt-in to volume cleanup.
-
-### Including Volumes (Explicit)
+### Weekly Maintenance
 
 ```bash
-# Only if you're sure
+# More thorough cleanup
+docker system prune -a
+```
+
+### Before Reclaiming Disk Space
+
+```bash
+# Full cleanup including old volumes
 null-e docker --clean --volumes
-
-# Extra warning:
-⚠️ WARNING: Including volumes may delete important data!
-   Review volumes carefully:
-   [1] ! postgres-data (12.3 GB) - Database data
-   [2] ! nginx-logs (4.1 GB) - Log files
-   [3] ! uploads (8.7 GB) - User uploads
-
-Are you sure? Type 'yes' to continue:
-> yes
 ```
 
-Explicit opt-in. Extra warnings. No accidents.
+---
 
-### Deep Sweep
+## Common Issues
+
+### "No space left on device"
+
+Docker ran out of disk space. Quick fix:
 
 ```bash
-# Find everything Docker-related
-null-e sweep
-
-# Shows:
-🧹 Deep Scan Results:
-🐳 Docker: 67.4 GB
-   ├── Images: 47 (32.5 GB)
-   ├── Containers: 15 (1.8 GB)
-   ├── Volumes: 12 (28.1 GB)
-   └── Build cache: 89 entries (5.0 GB)
-
-🔨 Xcode: 45.2 GB
-🐍 Python: 12.1 GB
-...
+# Emergency cleanup
+docker system prune -a -f
 ```
 
-Docker in context with other cleanup opportunities.
+### Build cache growing huge
 
-**<!-- TODO: INSERT IMAGE - Screenshot of null-e sweep showing Docker among other categories -->
+```bash
+# Clear build cache
+docker builder prune -a
+```
+
+### Too many old images
+
+```bash
+# Remove images older than 24h
+docker image prune -a --filter "until=24h"
+```
+
+---
+
+## Pro Tips
+
+### 1. Set Build Cache Limit
+
+Add to `~/.docker/daemon.json`:
+```json
+{
+  "builder": {
+    "gc": {
+      "enabled": true,
+      "defaultKeepStorage": "20GB"
+    }
+  }
+}
+```
+
+### 2. Use Multi-stage Builds
+
+Smaller final images = less disk usage:
+
+```dockerfile
+FROM node:20 AS builder
+WORKDIR /app
+COPY . .
+RUN npm ci && npm run build
+
+FROM node:20-slim
+COPY --from=builder /app/dist ./dist
+CMD ["node", "dist/index.js"]
+```
+
+### 3. Clean in CI/CD
+
+Add cleanup to your CI pipeline:
+
+```yaml
+- name: Docker cleanup
+  run: docker system prune -af
+```
+
+---
+
+## Results
+
+Typical Docker cleanup:
+
+```
+Before: 89 GB Docker data
+After:  31 GB Docker data
+Freed:  58 GB
+```
 
 ---
 
@@ -468,156 +497,9 @@ Docker in context with other cleanup opportunities.
 
 ---
 
-## The Docker Developer's Cleanup Workflow
-
-### Step 1: Check Docker Usage
-
-```bash
-# See what's using space
-null-e docker
-```
-
-Full visibility before any cleanup.
-
-### Step 2: Clean Safely
-
-```bash
-# Default safe cleanup
-null-e docker --clean
-
-# Or dry run first
-null-e docker --clean --dry-run
-```
-
-### Step 3: Handle WSL2 (Windows)
-
-```bash
-# If on Windows, null-e will guide you:
-wsl --shutdown
-# Then follow null-e's compaction guide
-```
-
-### Step 4: Make It Automatic
-
-```bash
-# Weekly cleanup (safe, no volumes)
-null-e docker --clean
-
-# Monthly deep clean (review volumes)
-null-e docker --clean --volumes
-
-# Or add to cron/task scheduler:
-0 0 * * 0 /usr/local/bin/null-e docker --clean
-```
-
-**<!-- TODO: INSERT IMAGE - Workflow diagram: Check → Clean → Compact → Automate -->
-
----
-
-## Preventing Docker Disk Bloat
-
-### Use .dockerignore
-
-```dockerignore
-# .dockerignore
-node_modules
-*.log
-.git
-.vscode
-target/
-build/
-dist/
-```
-
-Prevents unnecessary files from entering build context.
-
-### Multi-Stage Builds
-
-```dockerfile
-# Multi-stage build = smaller final image
-FROM node:20 AS builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run build
-
-FROM node:20-slim
-WORKDIR /app
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-CMD ["node", "dist/index.js"]
-```
-
-Final image only has runtime necessities.
-
-### Clean Up After Testing
-
-```bash
-# Use --rm for temporary containers
-docker run --rm -v $(pwd):/data myimage
-
-# Automatically removes container when done
-```
-
-### Set Build Cache Limits
-
-```json
-// ~/.docker/daemon.json
-{
-  "builder": {
-    "gc": {
-      "enabled": true,
-      "defaultKeepStorage": "20GB"
-    }
-  }
-}
-```
-
-Auto-cleans old build cache.
-
-**<!-- TODO: INSERT IMAGE - Code snippets showing Docker optimization tips -->
-
----
-
-## Take Back Your Disk Space Today
+## Conclusion
 
 Don't let Docker own your disk.
-
-**[Install null-e →](https://github.com/us/null-e)**
-
-```bash
-# Install
-cargo install null-e
-
-# Check Docker usage
-null-e docker
-
-# Clean safely
-null-e docker --clean
-
-# Or with volume review (careful)
-null-e docker --clean --volumes
-```
-
-### What You'll Reclaim
-
-| Category | Typical Savings |
-|----------|---------------|
-| Unused images | 10-30 GB |
-| Stopped containers | 1-5 GB |
-| Build cache | 5-20 GB |
-| Dangling images | 2-8 GB |
-| Unused volumes (if safe) | 5-30 GB |
-| WSL2 compaction | 10-50 GB |
-| **Total** | **33-143 GB** |
-
-That's not just disk space. That's:
-- ✅ No more "no space left on device" during builds
-- ✅ Faster Docker operations (less to scan)
-- ✅ Backups that don't include 100GB VHDX files
-- ✅ Working Windows machine (no WSL2 bloat)
-- ✅ Professional pride in a clean system
 
 > *"Docker is amazing, but it's also a hoarder by default."* — **DEV Community**
 

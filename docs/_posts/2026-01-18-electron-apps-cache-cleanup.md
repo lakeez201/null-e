@@ -2,7 +2,7 @@
 layout: post
 title: "Electron Apps Cache Cleanup: Reclaim 1-10GB from Slack, Discord, Spotify, and VS Code"
 description: "Electron apps consume massive cache space. Learn how to safely clean Slack, Discord, VS Code, Spotify, and other Electron app caches. Reclaim disk space from hidden app data."
-date: 2024-02-26
+date: 2026-01-18
 author: us
 tags: [electron, cache-cleanup, slack, discord, vscode, spotify, app-cache, disk-cleanup]
 ---

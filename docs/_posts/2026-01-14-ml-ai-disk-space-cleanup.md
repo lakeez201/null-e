@@ -2,7 +2,7 @@
 layout: post
 title: "Machine Learning Disk Space Cleanup: Reclaim 50-500GB from HuggingFace, PyTorch, and AI Models"
 description: "ML/AI development consumes massive disk space with model downloads, datasets, and caches. Learn how to safely clean HuggingFace cache, PyTorch models, and Ollama LLMs. Complete guide for ML developers."
-date: 2024-02-22
+date: 2026-01-14
 author: us
 tags: [machine-learning, ai, huggingface, pytorch, ollama, llm, disk-cleanup, models, datasets]
 ---

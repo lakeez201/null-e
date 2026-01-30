@@ -2,7 +2,7 @@
 layout: post
 title: "Go vendor/ Directory and Module Cache Cleanup: Reclaim 5-20GB from Go Projects"
 description: "Go developers lose disk space to vendor/ directories and module cache. Learn how to safely clean Go build artifacts, go mod cache, and old projects. Complete guide for Go developers."
-date: 2024-02-19
+date: 2026-01-11
 author: us
 tags: [golang, go-modules, vendor-directory, disk-cleanup, go-mod-cache, build-artifacts]
 ---
