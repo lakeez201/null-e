@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ page.title | default: site.title }}</title>
+  {% seo %}
+  <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    .page-header {
+      background: linear-gradient(120deg, #155799, #159957);
+      padding: 4rem 1rem;
+      color: white;
+      text-align: center;
+    }
+    .page-header h1 {
+      margin: 0 0 1rem;
+      font-size: 2.5rem;
+      font-weight: 600;
+    }
+    .page-header p {
+      margin: 0;
+      font-size: 1.25rem;
+      opacity: 0.9;
+    }
+    .main-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 3rem 1rem;
+    }
+    .main-content h2 {
+      color: #159957;
+      margin-top: 2.5rem;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 0.5rem;
+    }
+    .main-content h3 {
+      color: #155799;
+      margin-top: 2rem;
+    }
+    .main-content pre {
+      background: #f6f8fa;
+      padding: 1rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      border: 1px solid #e1e4e8;
+    }
+    .main-content code {
+      background: #f6f8fa;
+      padding: 0.2rem 0.4rem;
+      border-radius: 3px;
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      font-size: 0.9em;
+    }
+    .main-content pre code {
+      background: none;
+      padding: 0;
+    }
+    .main-content blockquote {
+      border-left: 4px solid #159957;
+      padding-left: 1rem;
+      margin: 1.5rem 0;
+      color: #555;
+      font-style: italic;
+    }
+    .main-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+    }
+    .main-content th,
+    .main-content td {
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    .main-content th {
+      background: #f6f8fa;
+      font-weight: 600;
+    }
+    .main-content tr:nth-child(even) {
+      background: #fafafa;
+    }
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background: rgba(255,255,255,0.15);
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all 0.2s;
+      border: 2px solid rgba(255,255,255,0.3);
+    }
+    .btn:hover {
+      background: rgba(255,255,255,0.25);
+      border-color: rgba(255,255,255,0.5);
+    }
+    .btn-primary {
+      background: rgba(255,255,255,0.9);
+      color: #155799;
+      font-weight: 600;
+    }
+    .btn-primary:hover {
+      background: white;
+    }
+    .highlight-box {
+      background: linear-gradient(120deg, #f6f8fa, #fff);
+      border: 1px solid #e1e4e8;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+    .robot-mascot {
+      font-family: 'SFMono-Regular', monospace;
+      line-height: 1.2;
+      text-align: center;
+      margin: 2rem 0;
+      color: #555;
+    }
+    .site-footer {
+      text-align: center;
+      padding: 3rem 2rem;
+      border-top: 1px solid #eee;
+      color: #666;
+      background: #f6f8fa;
+    }
+    .site-footer a {
+      color: #155799;
+      text-decoration: none;
+    }
+    .site-footer a:hover {
+      text-decoration: underline;
+    }
+    .footer-mascot {
+      font-family: 'SFMono-Regular', monospace;
+      line-height: 1.2;
+      margin-top: 1rem;
+      color: #999;
+    }
+    ul, ol {
+      padding-left: 1.5rem;
+    }
+    li {
+      margin: 0.5rem 0;
+    }
+    a {
+      color: #155799;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #eee;
+      margin: 2rem 0;
+    }
+  </style>
+</head>
+<body>
+  {% if page.layout != 'post' %}
+  <header class="page-header">
+    <h1>{{ site.title }}</h1>
+    <p>{{ site.description }}</p>
+    <p style="margin-top: 1.5rem;">
+      <a href="https://github.com/us/null-e" class="btn">View on GitHub</a>
+      <a href="https://crates.io/crates/null-e" class="btn btn-primary">Install from crates.io</a>
+    </p>
+  </header>
+  {% endif %}
+
+  <main class="main-content">
+    {{ content }}
+  </main>
+
+  <footer class="site-footer">
+    <p>
+      <strong>null-e</strong> — The friendly disk cleanup robot 🤖
+    </p>
+    <p>
+      <a href="https://github.com/us/null-e">GitHub</a> •
+      <a href="https://crates.io/crates/null-e">crates.io</a> •
+      <a href="{{ site.baseurl }}/">Documentation</a>
+    </p>
+    <pre class="footer-mascot">
+     .---.
+    |o   o|
+    |  ^  |  Send your cruft to /dev/null!
+    | === |
+    `-----'
+     /| |\
+    </pre>
+  </footer>
+</body>
+</html>
