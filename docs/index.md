@@ -87,7 +87,7 @@ null-e docker
 >
 > Like the adorable trash-compacting robot from the movie, null-e tirelessly cleans up your developer junk and sends it where it belongs!
 
-## Documentation
+## Blog
 
 {% for post in site.posts limit:10 %}
 <div class="blog-item">
@@ -103,6 +103,6 @@ null-e docker
 </div>
 {% endfor %}
 
-<p style="margin-top: 20px;">
-  <a href="{{ site.baseurl }}/blog/" style="color: #267CB9; font-weight: 600;">View all {{ site.posts | size }} guides →</a>
+<p style="margin-top: 20px; color: #666; font-size: 14px;">
+  Showing 10 of {{ site.posts | size }} blog posts
 </p>
