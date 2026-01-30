@@ -5,173 +5,439 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ page.title | default: site.title }}</title>
   {% seo %}
-  <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    * {
-      box-sizing: border-box;
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --secondary: #059669;
+      --bg: #ffffff;
+      --bg-alt: #f8fafc;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+      --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
     }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       line-height: 1.6;
-      color: #333;
-      margin: 0;
-      padding: 0;
+      color: var(--text);
+      background: var(--bg);
     }
-    .page-header {
-      background: linear-gradient(120deg, #155799, #159957);
-      padding: 4rem 1rem;
+    
+    /* Hero Section */
+    .hero {
+      background: linear-gradient(135deg, #1e3a8a 0%, #059669 100%);
       color: white;
+      padding: 4rem 1rem;
       text-align: center;
     }
-    .page-header h1 {
-      margin: 0 0 1rem;
-      font-size: 2.5rem;
-      font-weight: 600;
+    
+    .hero-content {
+      max-width: 800px;
+      margin: 0 auto;
     }
-    .page-header p {
-      margin: 0;
+    
+    .robot-mascot {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      margin-bottom: 1.5rem;
+      opacity: 0.9;
+      white-space: pre;
+    }
+    
+    .hero h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    
+    .hero p {
       font-size: 1.25rem;
       opacity: 0.9;
+      margin-bottom: 2rem;
     }
+    
+    .badges {
+      margin-bottom: 1.5rem;
+    }
+    
+    .badges img {
+      margin: 0 0.25rem;
+    }
+    
+    .cta-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: white;
+      color: #1e3a8a;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .btn-secondary {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: 2px solid rgba(255,255,255,0.3);
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    
+    /* Main Content */
     .main-content {
       max-width: 900px;
       margin: 0 auto;
       padding: 3rem 1rem;
     }
-    .main-content h2 {
-      color: #159957;
-      margin-top: 2.5rem;
-      border-bottom: 2px solid #eee;
+    
+    .section {
+      margin-bottom: 3rem;
+    }
+    
+    h2 {
+      font-size: 1.875rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 1rem;
       padding-bottom: 0.5rem;
-    }
-    .main-content h3 {
-      color: #155799;
-      margin-top: 2rem;
-    }
-    .main-content pre {
-      background: #f6f8fa;
-      padding: 1rem;
-      border-radius: 6px;
-      overflow-x: auto;
-      border: 1px solid #e1e4e8;
-    }
-    .main-content code {
-      background: #f6f8fa;
-      padding: 0.2rem 0.4rem;
-      border-radius: 3px;
-      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-      font-size: 0.9em;
-    }
-    .main-content pre code {
-      background: none;
-      padding: 0;
-    }
-    .main-content blockquote {
-      border-left: 4px solid #159957;
-      padding-left: 1rem;
-      margin: 1.5rem 0;
-      color: #555;
-      font-style: italic;
-    }
-    .main-content table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 1.5rem 0;
-    }
-    .main-content th,
-    .main-content td {
-      padding: 0.75rem;
-      border: 1px solid #ddd;
-      text-align: left;
-    }
-    .main-content th {
-      background: #f6f8fa;
-      font-weight: 600;
-    }
-    .main-content tr:nth-child(even) {
-      background: #fafafa;
-    }
-    .btn {
+      border-bottom: 3px solid var(--primary);
       display: inline-block;
-      padding: 0.75rem 1.5rem;
-      background: rgba(255,255,255,0.15);
-      color: white;
-      text-decoration: none;
-      border-radius: 6px;
-      transition: all 0.2s;
-      border: 2px solid rgba(255,255,255,0.3);
     }
-    .btn:hover {
-      background: rgba(255,255,255,0.25);
-      border-color: rgba(255,255,255,0.5);
-    }
-    .btn-primary {
-      background: rgba(255,255,255,0.9);
-      color: #155799;
+    
+    h3 {
+      font-size: 1.25rem;
       font-weight: 600;
+      color: var(--primary-dark);
+      margin: 1.5rem 0 0.75rem;
     }
-    .btn-primary:hover {
-      background: white;
+    
+    p {
+      margin-bottom: 1rem;
+      color: var(--text);
     }
-    .highlight-box {
-      background: linear-gradient(120deg, #f6f8fa, #fff);
-      border: 1px solid #e1e4e8;
-      border-radius: 8px;
-      padding: 1.5rem;
-      margin: 1.5rem 0;
-    }
-    .robot-mascot {
-      font-family: 'SFMono-Regular', monospace;
-      line-height: 1.2;
-      text-align: center;
-      margin: 2rem 0;
-      color: #555;
-    }
-    .site-footer {
-      text-align: center;
-      padding: 3rem 2rem;
-      border-top: 1px solid #eee;
-      color: #666;
-      background: #f6f8fa;
-    }
-    .site-footer a {
-      color: #155799;
-      text-decoration: none;
-    }
-    .site-footer a:hover {
-      text-decoration: underline;
-    }
-    .footer-mascot {
-      font-family: 'SFMono-Regular', monospace;
-      line-height: 1.2;
-      margin-top: 1rem;
-      color: #999;
-    }
+    
     ul, ol {
+      margin: 1rem 0;
       padding-left: 1.5rem;
     }
+    
     li {
       margin: 0.5rem 0;
     }
-    a {
-      color: #155799;
+    
+    strong {
+      font-weight: 600;
+      color: var(--primary-dark);
     }
-    hr {
-      border: none;
-      border-top: 1px solid #eee;
+    
+    /* Code Blocks */
+    pre {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 1.25rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 1rem 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      line-height: 1.6;
+    }
+    
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875em;
+      background: var(--bg-alt);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      color: var(--primary-dark);
+    }
+    
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+    }
+    
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    
+    th {
+      background: var(--bg-alt);
+      font-weight: 600;
+      text-align: left;
+      padding: 0.875rem;
+      border-bottom: 2px solid var(--border);
+    }
+    
+    td {
+      padding: 0.875rem;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    tr:last-child td {
+      border-bottom: none;
+    }
+    
+    tr:hover {
+      background: var(--bg-alt);
+    }
+    
+    /* Blockquotes */
+    blockquote {
+      border-left: 4px solid var(--secondary);
+      background: var(--bg-alt);
+      padding: 1rem 1.5rem;
+      margin: 1.5rem 0;
+      border-radius: 0 8px 8px 0;
+      font-style: italic;
+    }
+    
+    /* Feature Cards */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
       margin: 2rem 0;
+    }
+    
+    .feature-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: all 0.2s;
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--primary);
+    }
+    
+    .feature-icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .feature-card h3 {
+      margin: 0 0 0.5rem;
+      font-size: 1.125rem;
+    }
+    
+    .feature-card p {
+      margin: 0;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+    
+    /* Blog Posts List */
+    .blog-list {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .blog-item {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin: 1rem 0;
+      padding: 1.25rem;
+      transition: all 0.2s;
+    }
+    
+    .blog-item:hover {
+      box-shadow: var(--shadow);
+      border-color: var(--primary);
+    }
+    
+    .blog-item a {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.125rem;
+    }
+    
+    .blog-item a:hover {
+      color: var(--primary);
+    }
+    
+    .blog-meta {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      margin-top: 0.5rem;
+    }
+    
+    .tag {
+      display: inline-block;
+      background: var(--bg-alt);
+      color: var(--primary-dark);
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      margin-right: 0.5rem;
+    }
+    
+    /* Footer */
+    .site-footer {
+      background: var(--bg-alt);
+      border-top: 1px solid var(--border);
+      padding: 3rem 1rem;
+      text-align: center;
+      margin-top: 4rem;
+    }
+    
+    .footer-content {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    
+    .footer-links a:hover {
+      color: var(--primary);
+    }
+    
+    .footer-mascot {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-top: 1rem;
+      line-height: 1.4;
+    }
+    
+    /* Post Header (for blog posts) */
+    .post-header {
+      background: linear-gradient(135deg, #1e3a8a 0%, #059669 100%);
+      color: white;
+      padding: 3rem 1rem;
+      text-align: center;
+    }
+    
+    .post-header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      max-width: 800px;
+      margin: 0 auto 1rem;
+    }
+    
+    .post-header p {
+      opacity: 0.9;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .post-meta-header {
+      margin-top: 1.5rem;
+      font-size: 0.875rem;
+      opacity: 0.8;
+    }
+    
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: white;
+      text-decoration: none;
+      margin-bottom: 1rem;
+      font-weight: 500;
+    }
+    
+    .back-link:hover {
+      text-decoration: underline;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 1.875rem; }
+      .hero p { font-size: 1rem; }
+      .cta-buttons { flex-direction: column; align-items: center; }
+      .btn { width: 100%; max-width: 300px; justify-content: center; }
+      h2 { font-size: 1.5rem; }
+      .features-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
-  {% if page.layout != 'post' %}
-  <header class="page-header">
-    <h1>{{ site.title }}</h1>
-    <p>{{ site.description }}</p>
-    <p style="margin-top: 1.5rem;">
-      <a href="https://github.com/us/null-e" class="btn">View on GitHub</a>
-      <a href="https://crates.io/crates/null-e" class="btn btn-primary">Install from crates.io</a>
-    </p>
+  {% if page.layout == 'post' %}
+  <header class="post-header">
+    <a href="{{ site.baseurl }}/" class="back-link">← Back to Home</a>
+    <h1>{{ page.title }}</h1>
+    {% if page.description %}
+    <p>{{ page.description }}</p>
+    {% endif %}
+    <div class="post-meta-header">
+      {{ page.date | date: "%B %d, %Y" }}
+      {% if page.author %}by {{ page.author }}{% endif %}
+    </div>
+  </header>
+  {% else %}
+  <header class="hero">
+    <div class="hero-content">
+      <pre class="robot-mascot">     .---.
+    |o   o|    null-e
+    |  ^  |    ═══════════════════════════════════
+    | === |    The friendly disk cleanup robot
+    `-----'    Send your cruft to /dev/null!
+     /| |\</pre>
+      <h1>null-e - Disk Cleanup Tool for Developers</h1>
+      <p>Clean node_modules, target, .venv, Docker images, Xcode caches and 50+ cache types. Reclaim 100+ GB of disk space.</p>
+      <div class="badges">
+        <img src="https://img.shields.io/crates/v/null-e.svg" alt="Crates.io">
+        <img src="https://img.shields.io/crates/d/null-e.svg" alt="Downloads">
+      </div>
+      <div class="cta-buttons">
+        <a href="https://github.com/us/null-e" class="btn btn-secondary">View on GitHub</a>
+        <a href="https://crates.io/crates/null-e" class="btn btn-primary">Install from crates.io</a>
+      </div>
+    </div>
   </header>
   {% endif %}
 
@@ -180,22 +446,20 @@
   </main>
 
   <footer class="site-footer">
-    <p>
-      <strong>null-e</strong> — The friendly disk cleanup robot 🤖
-    </p>
-    <p>
-      <a href="https://github.com/us/null-e">GitHub</a> •
-      <a href="https://crates.io/crates/null-e">crates.io</a> •
-      <a href="{{ site.baseurl }}/">Documentation</a>
-    </p>
-    <pre class="footer-mascot">
-     .---.
+    <div class="footer-content">
+      <p><strong>null-e</strong> — The friendly disk cleanup robot</p>
+      <div class="footer-links">
+        <a href="https://github.com/us/null-e">GitHub</a>
+        <a href="https://crates.io/crates/null-e">crates.io</a>
+        <a href="{{ site.baseurl }}/">Documentation</a>
+      </div>
+      <pre class="footer-mascot">     .---.
     |o   o|
     |  ^  |  Send your cruft to /dev/null!
     | === |
     `-----'
-     /| |\
-    </pre>
+     /| |\</pre>
+    </div>
   </footer>
 </body>
 </html>
