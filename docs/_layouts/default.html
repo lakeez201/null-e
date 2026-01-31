@@ -38,16 +38,17 @@
       -webkit-font-smoothing: subpixel-antialiased;
     }
     
-    /* Robot mascot styling */
+    /* Robot mascot styling - single line */
     .robot-mascot {
       font-family: 'Courier New', monospace;
-      font-size: 10px;
-      line-height: 1.3;
-      white-space: pre;
-      margin: 20px 0;
+      font-size: 12px;
+      line-height: 1;
+      margin: 10px 0;
       color: #666;
-      max-width: 100%;
-      overflow-x: auto;
+      background: #f5f5f5;
+      padding: 8px 12px;
+      border-radius: 4px;
+      display: inline-block;
     }
     
     /* View on GitHub button */
@@ -246,12 +247,7 @@
       <h1>{{ site.title | default: "null-e" }}</h1>
       <p>{{ site.description | default: "The friendly disk cleanup robot for developers" }}</p>
       
-      <pre class="robot-mascot">  .---.
- |o   o|
- |  ^  |
- | === |
- `-----'
-  /| |\</pre>
+      <div class="robot-mascot">🤖 null-e - The friendly disk cleanup robot</div>
       
       <p>
         <a href="https://github.com/us/null-e" class="github-button">View on GitHub</a>
